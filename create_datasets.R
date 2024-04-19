@@ -1,4 +1,4 @@
-dat = data.frame()
+daily_weather = data.frame()
 
 for (year in dir("raw_data")){
   for (file_name in dir(paste0("raw_data/", year))){
@@ -8,20 +8,30 @@ for (year in dir("raw_data")){
     temp_dat = read.table(paste0("raw_data/", year, "/", file_name))
     temp_dat$state = state
     temp_dat$station_name = station_name
-    dat = rbind(dat, temp_dat[ , c(1, 29, 30, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)])
+    daily_weather = rbind(dat, temp_dat[ , c(1, 29, 30, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)])
   }
 }
 
 # converting column names to the ones listed in the project requirements
-colnames(dat) = c("WBANNO", "state", "station name", "LST_DATE", "CRX_VN", "LONGITUDE", "LATITUDE",
+colnames(daily_weather) = c("WBANNO", "state", "station name", "LST_DATE", "CRX_VN", "LONGITUDE", "LATITUDE",
 "T_DAILY_MAX", "T_DAILY_MIN", "T_DAILY_MEAN", "T_DAILY_AVG", "P_DAILY_CALC",
 "SOLARAD_DAILY")
 
 # converting LST_DATE to R Date format
-dat$LST_DATE = as.Date(as.character(dat$LST_DATE), "%Y%m%d")
+daily_weather$LST_DATE = as.Date(as.character(daily_weather$LST_DATE), "%Y%m%d")
 
 # converting missing values to NA according to missing values listed in the data documentation
-dat[dat == -9999] = NA
-dat[dat$CRX_VN == -9, "CRX_VN"] = NA
-dat[dat$LATITUDE == -99, "LATITUDE"] = NA
-dat[dat$LONGITUDE == -99, "LONGITUDE"] = NA
+daily_weather[daily_weather == -9999] = NA
+daily_weather[daily_weather$CRX_VN == -9, "CRX_VN"] = NA
+daily_weather[daily_weather$LATITUDE == -99, "LATITUDE"] = NA
+daily_weather[daily_weather$LONGITUDE == -99, "LONGITUDE"] = NA
+
+# not sure what a station identifier is, assuming it is WBANNO
+station_info = unique(daily_weather[ , c("WBANNO", "station name", "state", "LONGITUDE", "LATITUDE")])
+
+# test
+nrow(station_dat)
+length(unique(station_dat$`station name`))
+
+save(daily_weather, file = "ProjectSTSCI4520/data/")
+save(station_info, file = "ProjectSTSCI4520/data/")
