@@ -1,6 +1,7 @@
 daily_weather = data.frame()
 
-for (year in dir("raw_data")){
+for (year in dir("raw_data/")){
+  year_daily_weather = data.frame()
   for (file_name in dir(paste0("raw_data/", year))){
     file_name_no_ext = substr(file_name, start = 1, stop = nchar(file_name) - 4)
     station_name = strsplit(file_name_no_ext, "-")[[1]][3]
@@ -8,8 +9,9 @@ for (year in dir("raw_data")){
     temp_dat = read.table(paste0("raw_data/", year, "/", file_name))
     temp_dat$state = state
     temp_dat$station_name = station_name
-    daily_weather = rbind(dat, temp_dat[ , c(1, 29, 30, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)])
+    year_daily_weather = rbind(year_daily_weather, temp_dat[ , c(1, 29, 30, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)])
   }
+  daily_weather = rbind(daily_weather, year_daily_weather)
 }
 
 # converting column names to the ones listed in the project requirements
@@ -29,9 +31,5 @@ daily_weather[daily_weather$LONGITUDE == -99, "LONGITUDE"] = NA
 # not sure what a station identifier is, assuming it is WBANNO
 station_info = unique(daily_weather[ , c("WBANNO", "station name", "state", "LONGITUDE", "LATITUDE")])
 
-# test
-nrow(station_dat)
-length(unique(station_dat$`station name`))
-
-save(daily_weather, file = "ProjectSTSCI4520/data/")
-save(station_info, file = "ProjectSTSCI4520/data/")
+save(daily_weather, file = "ProjectSTSCI4520/data/daily_weather.RData")
+save(station_info, file = "ProjectSTSCI4520/data/station_info.RData")
