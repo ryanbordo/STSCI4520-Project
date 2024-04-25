@@ -115,3 +115,26 @@ temperature_trend <- function(station_id){
 
 
 
+#' Plot a grid of the US with maximum resolution specified.
+#'
+#'
+#' @param resolution_X the maximum resolution with respect to longitude to be plotted.
+#' @param resolution_Y the maximum resolution with respect to latitude to be plotted.
+#' @return a set of points at the specified resolution, all falling within the contiguous USA.
+#' @examples
+#' # get a plot of the USA at 30 maximum points with respect to longitude and 20 with respect to latitude
+#' point_map <- create_grid(resolution_X = 30, resolution_Y=20)
+#' plot(point_map)
+#' @export
+create_grid <- function(resolution_X = 50,resolution_Y = 50){
+  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa',plot=F,fill=T)),crs=3857)
+  boundaries <- sf::st_bbox(usamap)
+  longitudes <- seq(boundaries$xmin,boundaries$xmax,length.out=resolution_X)
+  latitudes <- seq(boundaries$ymin,boundaries$ymax,length.out=resolution_Y)
+  usa.grid <- expand.grid(longitudes,latitudes)
+  colnames(usa.grid) <- c("longitude","latitude")
+  grid_sf <- sf::st_as_sf(usa.grid,coords=c("longitude","latitude"),crs = 3857)
+  filtered_points <- sf::st_filter(grid_sf,usamap)
+  return(filtered_points)
+}
+
