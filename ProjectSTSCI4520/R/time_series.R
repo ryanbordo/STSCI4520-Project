@@ -84,3 +84,34 @@ get_yearly_cycle <- function(station_id,start_date = "2000-01-01",end_date="3000
   }
   return(returneddf[order(returneddf$day),])
 }
+
+
+
+
+#' Estimate the trend over time for annual temperatures.
+#' This is done through annualizing the data to account for yearly cycles.
+#'
+#'
+#' @param station_id station ID also known as WBANNO
+#' @return a linear regression model trained on annualized data
+#' @examples
+#' # get yearly trend for Ithaca, NY
+#' ithaca_model <- temperature_trend(64758)
+#' print(summary(ithaca_model))
+#' @export
+temperature_trend <- function(station_id){
+  station_weather <- get_station_weather(station_id)
+  #aggregate the temperature data to once per year
+  intervals <- seq(min(station_weather$LST_DATE),max(station_weather$LST_DATE),by="12 months")
+  trend_for_lm <- rep(0,length(intervals)-1)
+  names(trend_for_lm) <- seq_len(length(intervals)-1)
+  for(period in seq_len(length(intervals)-1)){
+    cond <- (station_weather$LST_DATE>=intervals[period]) & (station_weather$LST_DATE<=intervals[period+1])
+    trend_for_lm[period] <- mean(station_weather[cond,"T_DAILY_AVG"],na.rm=T)
+  }
+  trend_dataframe <- data.frame(temperature=trend_for_lm,annual_period=seq_len(length(intervals)-1))
+  return(lm(temperature~annual_period,data=trend_dataframe))
+}
+
+
+
