@@ -139,8 +139,41 @@ create_grid <- function(resolution_X = 50,resolution_Y = 50){
 }
 
 
+#' Interpolate values of X and Y via a gaussian processes model given a grid to interpolate to.
+#'
+#' @param toInterpolate a numeric of the datapoints which are to be interpolated.
+#' @param longitudes a numeric of the longitudes associated with the points to interpolate.
+#' @param latitudes a numeric of the latitudes associated with the points to interpolate.
+#' @param gridpoints a series of sf points associated to the grid points to be interpolated with.
+#' @return a dataframe containing interpolated data, their longitudes, and their latitudes.
+#' @examples
+#' Interpolates a plot to the daily average temperature across the US
+#' toInterpolate <- na.omit(daily_weather)
+#' toInterpolate <- toInterpolate[!duplicated(toInterpolate$WBANNO),
+#'                                c("LONGITUDE","LATITUDE","T_DAILY_AVG")]
+#' interpolate_data(toInterpolate$T_DAILY_AVG,toInterpolate$LONGITUDE,toInterpolate$LATITUDE,
+#'                  create_grid(resolution_X = 20,resolution_Y=20))
+#' @export
 
 
+interpolate_data <- function(toInterpolate,longitudes,latitudes,gridpoints){
+  #station data should have one column of data, then the station's longitude and latitude
+  #Interpolation done via gpgp
+  #train the gpgp model
+  gridpoints <- sf::st_transform(filtered_points,crs="+proj=longlat +datum=WGS84")
+  #convert from UTM back to longitudes and latitudes
+  coord <- cbind(longitudes,latitudes)
+  X <- cbind(rep(1,length(toInterpolate)),coord)
+  gp_model <- GpGp::fit_model(y=toInterpolate,locs=coord,X=X,
+                              covfun_name = "exponential_sphere",silent=T)
+  grid_matrix <-sf::st_coordinates(gridpoints)
+  Xpred <- cbind(1,grid_matrix)
+  interpolations <- GpGp::predictions(fit=gp_model,locs_pred= grid_matrix,
+                                      X_pred=Xpred)
+  returned <- cbind(interpolations,grid_matrix)
+  colnames(returned) <- c("interpolations", "longitudes",'latitudes')
+  return(returned)
+}
 
 
 #' Plot points generated over a map of the contiguous US.
