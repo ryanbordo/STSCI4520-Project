@@ -116,10 +116,10 @@ temperature_trend <- function(station_id){
 
 
 #' Plot a grid of the US with maximum resolution specified.
+#' Coordinate grid points are in Mercator projection.
 #'
-#'
-#' @param resolution_X the maximum resolution with respect to longitude to be plotted.
-#' @param resolution_Y the maximum resolution with respect to latitude to be plotted.
+#' @param resolution_X an integer of the maximum resolution with respect to longitude to be plotted.
+#' @param resolution_Y an integer of the maximum resolution with respect to latitude to be plotted.
 #' @return a set of points at the specified resolution, all falling within the contiguous USA.
 #' @examples
 #' # get a plot of the USA at 30 maximum points with respect to longitude and 20 with respect to latitude
@@ -138,3 +138,25 @@ create_grid <- function(resolution_X = 50,resolution_Y = 50){
   return(filtered_points)
 }
 
+
+
+
+
+
+#' Plot points generated over a map of the contiguous US.
+#'
+#' @param interpolated_data the datapoints that are to be plotted
+#' @return a plot of the contiguous USA with points overlaid.
+#' @examples
+#' # get a plot of the USA at 30 maximum points with respect to longitude and 20 with respect to latitude
+#' point_map <- create_grid(resolution_X = 30, resolution_Y=20)
+#' plot_interpolations(point_map)
+#' @export
+
+
+
+plot_interpolations <- function(interpolated_data){
+  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa',plot=F,fill=T)),crs=3857)
+  plot(usamap,reset=F,key.pos=NULL)
+  plot(interpolated_data,add=T)
+}
