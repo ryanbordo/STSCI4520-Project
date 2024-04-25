@@ -172,24 +172,26 @@ interpolate_data <- function(toInterpolate,longitudes,latitudes,gridpoints){
                                       X_pred=Xpred)
   returned <- cbind(interpolations,grid_matrix)
   colnames(returned) <- c("interpolations", "longitudes",'latitudes')
-  return(returned)
+  return(data.frame(returned))
 }
 
 
 #' Plot points generated over a map of the contiguous US.
 #'
 #' @param interpolated_data the datapoints that are to be plotted
-#' @return a plot of the contiguous USA with points overlaid.
+#' @return A plot with points overlaid.
 #' @examples
-#' # get a plot of the USA at 30 maximum points with respect to longitude and 20 with respect to latitude
-#' point_map <- create_grid(resolution_X = 30, resolution_Y=20)
+#' # get a plot of the USA with interpolated temperatures
+#' point_map <- interpolate_data(toInterpolate$T_DAILY_AVG,toInterpolate$LONGITUDE,toInterpolate$LATITUDE,
+#'                  create_grid(resolution_X = 20,resolution_Y=20))
 #' plot_interpolations(point_map)
 #' @export
 
 
 
 plot_interpolations <- function(interpolated_data){
-  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa',plot=F,fill=T)),crs=3857)
-  plot(usamap,reset=F,key.pos=NULL)
-  plot(interpolated_data,add=T)
+  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa',plot=F,fill=T)),crs="+proj=longlat +datum=WGS84")
+  plot(sf::st_geometry(usamap),reset=T)
+  plot(sf::st_as_sf(data.frame(interpolated_data),coords=c("longitudes","latitudes"),crs="+proj=longlat +datum=WGS84"),add=T,reset=F)
 }
+plot_interpolations(mypreds)
