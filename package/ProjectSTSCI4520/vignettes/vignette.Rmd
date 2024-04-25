@@ -1,0 +1,38 @@
+---
+title: "vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ProjectSTSCI4520)
+```
+
+```{r}
+# get station id for Ithaca weather station
+ithaca_index <- grep("Ithaca", station_info$`station name`)
+ithaca_info <- station_info[ithaca_index,]
+ithaca_id <- ithaca_info$WBANNO
+
+# get weather data for Ithaca in 2020
+ithaca_2020_data <- get_station_weather(ithaca_id, start_date = "2020-01-01", end_date = "2020-12-31")
+print(head(ithaca_2020_data))
+
+
+# get yearly cycle averages for Ithaca without a leap day
+ithaca_yearly_cycle <- get_yearly_cycle(ithaca_id)
+print(head(ithaca_yearly_cycle))
+
+#
+temperature_trend(ithaca_id)
+```
