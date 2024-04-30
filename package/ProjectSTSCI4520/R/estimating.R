@@ -32,7 +32,7 @@ get_yearly_cycle <- function(station_id, drop_leapdays = T) {
     as.numeric(strftime(station_weather$LST_DATE, format = "%j"))
   yearly_cycle_data <-
     station_weather |> dplyr:::group_by(day_number) |> dplyr:::summarize(expected_avg_temp = mean(T_DAILY_AVG, na.rm = T))
-  if (drop_leapdays) {
+  if (drop_leapdays && nrow(station_weather) == 366) {
     yearly_cycle_data <- yearly_cycle_data[-60, ]
     yearly_cycle_data$day_number = 1:365
   }
