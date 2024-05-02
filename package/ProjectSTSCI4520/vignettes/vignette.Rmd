@@ -19,20 +19,9 @@ library(ProjectSTSCI4520)
 ```
 
 ```{r}
-# get station id for Ithaca weather station
-ithaca_index <- grep("Ithaca", station_info$`station name`)
-ithaca_info <- station_info[ithaca_index,]
-ithaca_id <- ithaca_info$WBANNO
-
-# get weather data for Ithaca in 2020
-ithaca_2020_data <- get_station_weather(ithaca_id, start_date = "2020-01-01", end_date = "2020-12-31")
-print(head(ithaca_2020_data))
-
-
-# get yearly cycle averages for Ithaca without a leap day
-ithaca_yearly_cycle <- get_yearly_cycle(ithaca_id)
-print(head(ithaca_yearly_cycle))
-
-#
-temperature_trend(ithaca_id)
+# map of the interpolated average temperature of stations in march 2024
+march_2024_data <- daily_weather |> dplyr:::filter(LST_DATE >= "2024-03-01", LST_DATE < "2024-04-01") |> dplyr:::group_by(`station name`, LONGITUDE, LATITUDE) |> dplyr:::summarise(avg_temp = mean(T_DAILY_AVG))
+grid <- create_grid(resolution_X = 1000, resolution_Y=1000)
+interp_data = interpolate_data(march_2024_data$avg_temp, march_2024_data$`station name`, grid)
+plot_interpolations(interp_data)
 ```
