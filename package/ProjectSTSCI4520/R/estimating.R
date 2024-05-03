@@ -5,40 +5,42 @@
 #' given weather station by its station ID with optional start and end date filters.
 #'
 #' @param station_id station ID also known as WBANNO
-#' @param start_date optional character (YYYY-MM-DD) or date parameter to filter for days beginning with start_date, inclusive
-#' @param end_date optional character (YYYY-MM-DD) or date parameter to filter for days ending before start_date, inclusive
-#' @param drop_leapdays a logical evaluating to TRUE or FALSE indicating whether leapdays should be considered or dropped in the returned dataframe.
+#' @param drop_leapdays a logical evaluating to TRUE or FALSE indicating whether leapdays should be dropped or considered, respectively, in the returned dataframe.
 #' @return a data frame with the following columns:
 #' \describe{
-#'   \item {day_number}{The day of the year (1-365 or 366 if drop_leapdays is TRUE)}
-#'   \item {expected_avg_temp}{The expected average temperature on the day in C)}
+#'   \item {dayofY}{The day of the year (1-365 or 366 if drop_leapdays is TRUE)}
+#'   \item {avgTemp}{The expected average temperature on the day in C)}
 #' }
 #' @examples
 #' # get yearly cycle for Ithaca, NY
-#' ithaca_data_all <- get_yearly_cycle(64758)
-#' print(head(ithaca_data_all))
-#' ithaca_data_early <- get_yearly_cycle(64758, end_date = "2010-01-01")
-#' print(head(ithaca_data_early))
-#' ithaca_data_late <- get_yearly_cycle(64758, start_date = "2020-01-01")
-#' print(head(ithaca_data_late))
-#' ithaca_data_specific <- get_yearly_cycle(64758, start_date = "2010-01-01", end_date = "2020-01-01")
-#' print(head(ithaca_data_specific))
-#' ithaca_data_noLeap <- get_yearly_cycle(64758, start_date = "2010-01-01", end_date = "2020-01-01",drop_leapdays=T)
-#' print(head(ithaca_data_noLeap))
+#' ithaca_predictions <- get_yearly_cycle(64758)
+#' print(head(ithaca_predictions))
+#' ithaca_predictions_Leapyears <- get_yearly_cycle(64758,F)
+#' print(head(ithaca_predictions_Leapyears))
 #' @export
 get_yearly_cycle <- function(station_id, drop_leapdays = T) {
   station_weather <- get_station_weather(station_id)
-  station_weather$day_number <-
-    as.numeric(strftime(station_weather$LST_DATE, format = "%j"))
-  yearly_cycle_data <-
-    station_weather |> dplyr:::group_by(day_number) |> dplyr:::summarize(expected_avg_temp = mean(T_DAILY_AVG, na.rm = T))
-  if (drop_leapdays && nrow(station_weather) == 366) {
-    yearly_cycle_data <- yearly_cycle_data[-60, ]
-    yearly_cycle_data$day_number = 1:365
+  if(drop_leapdays){
+    station_weather$dayofY <- as.numeric(format(station_weather$LST_DATE,"%m%d"))
+    station_weather <- station_weather[station_weather$dayofY !=229,]
+    station_weather$dayofY <- station_weather$dayofY+20010000 #force a non leap year
+    station_weather$dayofY <- as.numeric(format(strptime(station_weather$dayofY,"%Y%m%d"),"%j"))
+    yearlength=365
   }
-  return (yearly_cycle_data)
+  else{
+    station_weather$dayofY <- as.numeric(format(station_weather$LST_DATE,"%j"))
+    yearlength=366
+  }
+  station_weather <- station_weather[,c("T_DAILY_AVG","dayofY")]
+  #4*pi will allow for the skew between minimum and maximum
+  returned_lm <- lm(T_DAILY_AVG~
+                      I(sin(2*pi*dayofY/yearlength))+I(cos(2*pi*dayofY/yearlength))+
+                      I(sin(4*pi*dayofY/yearlength))+I(cos(4*pi*dayofY/yearlength)),
+                    data=station_weather) 
+  daysofYear <- data.frame(dayofY = seq_len(yearlength))
+  predictions <- returned_lm |> predict(daysofYear)
+  return (data.frame(avgTemp = predictions,dayofY = names(predictions)))
 }
-
 
 #' Estimate the trend over time for annual temperatures.
 #' This is done through annualizing the data to account for yearly cycles.
