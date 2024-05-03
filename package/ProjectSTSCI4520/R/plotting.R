@@ -3,18 +3,14 @@
 #'
 #' @param resolution_X an integer of the maximum resolution with respect to longitude to be plotted.
 #' @param resolution_Y an integer of the maximum resolution with respect to latitude to be plotted.
-#' @return a set of points at the specified resolution, all falling within the contiguous USA.
+#' @return a set of points at the specified resolution with a logical column representing whether the point falls within the contiguous USA.
 #' @examples
 #' # get a plot of the USA at 30 maximum points with respect to longitude and 20 with respect to latitude
 #' point_map <- create_grid(resolution_X = 30, resolution_Y=20)
 #' plot(point_map)
 #' @export
-create_grid <- function(resolution_X = 50,
-                        resolution_Y = 50) {
-  usamap <-
-    sf::st_transform(sf::st_as_sf(maps::map(
-      'usa', plot = F, fill = T
-    )), crs = 3857)
+create_grid <- function(resolution_X = 50,resolution_Y = 50) {
+  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa', plot = F))["main",],crs=3857)
   boundaries <- sf::st_bbox(usamap)
   longitudes <-
     seq(boundaries$xmin, boundaries$xmax, length.out = resolution_X)
@@ -26,8 +22,8 @@ create_grid <- function(resolution_X = 50,
     sf::st_as_sf(usa.grid,
                  coords = c("longitude", "latitude"),
                  crs = 3857)
-  filtered_points <- sf::st_filter(grid_sf, usamap)
-  return(filtered_points)
+  grid_sf$inUSA <- sf::st_intersects(grid_sf,usamap,sparse=F)
+  return(grid_sf)
 }
 
 
