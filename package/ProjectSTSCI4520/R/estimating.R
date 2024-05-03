@@ -33,44 +33,35 @@ get_yearly_cycle <- function(station_id, drop_leapdays = T) {
   }
   station_weather <- station_weather[,c("T_DAILY_AVG","dayofY")]
   #4*pi will allow for the skew between minimum and maximum
-  returned_lm <- lm(T_DAILY_AVG~
+  station_lm <- lm(T_DAILY_AVG~
                       I(sin(2*pi*dayofY/yearlength))+I(cos(2*pi*dayofY/yearlength))+
                       I(sin(4*pi*dayofY/yearlength))+I(cos(4*pi*dayofY/yearlength)),
-                    data=station_weather) 
+                    data=station_weather)
   daysofYear <- data.frame(dayofY = seq_len(yearlength))
-  predictions <- returned_lm |> predict(daysofYear)
+  predictions <- station_lm |> predict(daysofYear)
   return (data.frame(avgTemp = predictions,dayofY = names(predictions)))
 }
 
 #' Estimate the trend over time for annual temperatures.
-#' This is done through annualizing the data to account for yearly cycles.
+#' This is done through fitting a model accounting for time elapsed in years and seasonality.
 #'
 #'
 #' @param station_id station ID also known as WBANNO
-#' @return a linear regression model trained on annualized data
+#' @return numeric with Estimated temperature change in degrees Celsius per year(Estimate) and t-value of the estimate.
 #' @examples
 #' # get yearly trend for Ithaca, NY
 #' ithaca_model <- temperature_trend(64758)
-#' print(summary(ithaca_model))
+#' print(ithaca_model)
 #' @export
 temperature_trend <- function(station_id) {
   station_weather <- get_station_weather(station_id)
-  # aggregate the temperature data to once per year
-  intervals <-
-    seq(min(station_weather$LST_DATE),
-        max(station_weather$LST_DATE),
-        by = "12 months")
-  trend_for_lm <- rep(0, length(intervals) - 1)
-  names(trend_for_lm) <- 1:(length(intervals) - 1)
-  for (period in 1:(length(intervals) - 1)) {
-    cond <-
-      (station_weather$LST_DATE >= intervals[period]) &
-      (station_weather$LST_DATE <= intervals[period + 1])
-    trend_for_lm[period] <-
-      mean(station_weather[cond, "T_DAILY_AVG"], na.rm = T)
-  }
-  trend_dataframe <-
-    data.frame(temperature = trend_for_lm,
-               annual_period = 1:(length(intervals) - 1))
-  return(lm(temperature ~ annual_period, data = trend_dataframe))
+  station_weather$years_elapsed <- as.numeric(station_weather$LST_DATE-as.Date("2000-01-01"))/365.25
+  station_weather <- station_weather[,c("T_DAILY_AVG","years_elapsed")]
+  cycle_lm <- lm(T_DAILY_AVG~
+                   I(sin(2*pi*years_elapsed))+I(cos(2*pi*years_elapsed))+
+                   I(sin(4*pi*years_elapsed))+I(cos(4*pi*years_elapsed))+
+                   years_elapsed,
+                 data=station_weather)
+  #get the t value and coefficient estimate for our model
+  return(summary(cycle_lm)$coefficients["years_elapsed",c("Estimate", "t value")])
 }
