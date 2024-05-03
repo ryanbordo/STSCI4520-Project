@@ -89,5 +89,4 @@ plot_interpolations <- function(interpolated_data) {
                      matrix(interpolated_data$interpolations,nrow=length(unique(interpolated_data$longitudes))))
   plot(sf::st_geometry(usamap), add = T)
 }
-plot_interpolations(test)
 
