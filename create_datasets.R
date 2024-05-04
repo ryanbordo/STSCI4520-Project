@@ -30,6 +30,7 @@ daily_weather[daily_weather$LONGITUDE == -99, "LONGITUDE"] = NA
 
 # not sure what a station identifier is, assuming it is WBANNO
 station_info = unique(daily_weather[ , c("WBANNO", "station name", "state", "LONGITUDE", "LATITUDE")])
+row.names(station_info) = NULL
 
 save(daily_weather, file = "ProjectSTSCI4520/data/daily_weather.RData")
 save(station_info, file = "ProjectSTSCI4520/data/station_info.RData")

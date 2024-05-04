@@ -9,18 +9,28 @@
 #' point_map <- create_grid(resolution_X = 30, resolution_Y=20)
 #' plot(point_map)
 #' @export
-create_grid <- function(resolution_X = 50,resolution_Y = 50) {
-  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa', regions='main',plot = F)),crs=4326)
+create_grid <- function(resolution_X = 50,
+                        resolution_Y = 50) {
+  usamap <-
+    sf::st_transform(sf::st_as_sf(maps::map(
+      'usa', regions = 'main', plot = F
+    )), crs = 4326)
   boundaries <- sf::st_bbox(usamap)
   usacoords <- data.frame(sf::st_coordinates(usamap))
-  longitudes <- seq(boundaries$xmin, boundaries$xmax, length.out = resolution_X)
-  latitudes <- seq(boundaries$ymin, boundaries$ymax, length.out = resolution_Y)
+  longitudes <-
+    seq(boundaries$xmin, boundaries$xmax, length.out = resolution_X)
+  latitudes <-
+    seq(boundaries$ymin, boundaries$ymax, length.out = resolution_Y)
   usa.grid <- expand.grid(longitudes, latitudes)
   colnames(usa.grid) <- c("longitude", "latitude")
   grid_sf <- sf::st_as_sf(usa.grid,
-                 coords = c("longitude", "latitude"),
-                 crs = 4326)
-  grid_sf$inUSA <- sp::point.in.polygon(usa.grid$longitude,usa.grid$latitude,usacoords$X,usacoords$Y)
+                          coords = c("longitude", "latitude"),
+                          crs = 4326)
+  grid_sf$inUSA <-
+    sp::point.in.polygon(usa.grid$longitude,
+                         usa.grid$latitude,
+                         usacoords$X,
+                         usacoords$Y)
   return(grid_sf)
 }
 
@@ -63,16 +73,23 @@ interpolate_data <-
       GpGp::predictions(fit = gp_model,
                         locs_pred = grid_matrix,
                         X_pred = Xpred)
-    returned <- cbind(interpolations, grid_matrix,gridpoints$inUSA)
+    returned <- cbind(interpolations, grid_matrix, gridpoints$inUSA)
     colnames(returned) <-
-      c("interpolations", "longitudes", 'latitudes','inUSA')
+      c("interpolations", "longitudes", 'latitudes', 'inUSA')
     return(data.frame(returned))
   }
 
 
 #' Plot points generated over a map of the contiguous US.
 #'
-#' @param interpolated_data the datapoints that are to be plotted
+#' @param interpolated_data the datapoints that are to be plotted with the following columns
+#' \describe{
+#'   \item {interpolations}{The interpolated data points to plotted}
+#'   \item {longitudes}{A numeric of the longitudes to plot}
+#'   \item {latitudes}{A numeric of the latitudes to plot}
+#'   \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+#' @param latitudes a numeric of the latitudes associated with the points to interpolate
+#' }
 #' @return A plot with points overlaid.
 #' @examples
 #' # get a plot of the USA with interpolated temperatures
@@ -82,11 +99,20 @@ interpolate_data <-
 #' @export
 #'
 plot_interpolations <- function(interpolated_data) {
-  usamap <- sf::st_transform(sf::st_as_sf(maps::map('usa', plot = F)), crs = 4326)
+  usamap <-
+    sf::st_transform(sf::st_as_sf(maps::map('usa', plot = F)), crs = 4326)
   #make all invalid interpolations NA
-  interpolated_data[interpolated_data$inUSA==0,"interpolations"] <- NA
-  fields::imagePlot(unique(interpolated_data$longitudes),unique(interpolated_data$latitudes),
-                     matrix(interpolated_data$interpolations,nrow=length(unique(interpolated_data$longitudes))))
-  plot(sf::st_geometry(usamap), add = T)
+  interpolated_data[interpolated_data$inUSA == 0, "interpolations"] <-
+    NA
+  fields::imagePlot(
+    unique(interpolated_data$longitudes),
+    unique(interpolated_data$latitudes),
+    matrix(interpolated_data$interpolations, nrow = length(unique(
+      interpolated_data$longitudes
+    )))
+  )
+  plot(
+    sf::st_geometry(usamap),
+    add = T
+  )
 }
-

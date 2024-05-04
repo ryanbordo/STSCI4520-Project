@@ -1,8 +1,8 @@
 #' Estimate the yearly cycle for one station.
 #' A yearly cycle is the expected temperature on each day of the year.
 #'
-#' The yearly cycle is taken from weather data for a+
-#' given weather station by its station ID with optional start and end date filters.
+#' The yearly cycle is taken from weather data for a
+#' given weather station by its station ID
 #'
 #' @param station_id station ID also known as WBANNO
 #' @param drop_leapdays a logical evaluating to TRUE or FALSE indicating whether leapdays should be dropped or considered, respectively, in the returned dataframe.
@@ -39,7 +39,7 @@ get_yearly_cycle <- function(station_id, drop_leapdays = T) {
                     data=station_weather)
   daysofYear <- data.frame(dayofY = seq_len(yearlength))
   predictions <- station_lm |> predict(daysofYear)
-  return (data.frame(avgTemp = predictions,dayofY = names(predictions)))
+  return (data.frame(avgTemp = predictions,dayofY = as.numeric(names(predictions))))
 }
 
 #' Estimate the trend over time for annual temperatures.
