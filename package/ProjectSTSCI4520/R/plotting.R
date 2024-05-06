@@ -11,6 +11,12 @@
 #' @export
 create_grid <- function(resolution_X = 50,
                         resolution_Y = 50) {
+  if (length(resolution_X) != 1 || !is.numeric(resolution_X) || resolution_X %% 1 != 0) {
+    stop("Invalid resolution_X: resolution_X must be integer of length 1")
+  }
+  if (length(resolution_Y) != 1 || !is.numeric(resolution_Y) || resolution_Y %% 1 != 0) {
+    stop("Invalid resolution_Y: resolution_Y must be integer of length 1")
+  }
   usamap <-
     sf::st_transform(sf::st_as_sf(maps::map(
       'usa', regions = 'main', plot = F
@@ -57,6 +63,22 @@ interpolate_data <-
            latitudes,
            use_elev = F,
            gridpoints) {
+    if (length(datapoints) == 0 || !is.numeric(datapoints)) {
+      stop("Invalid datapoints: datapoints must be numeric of at least length 1")
+    }
+    if (length(longitudes) != length(datapoints) || !is.numeric(longitudes)) {
+      stop("Invalid longitudes: longitudes must be numeric with the same length as datapoints")
+    }
+    if (length(latitudes) != length(datapoints) || !is.numeric(latitudes)) {
+      stop("Invalid latitudes: latitudes must be numeric with the same length as datapoints")
+    }
+    if (length(gridpoints) != 2 || any(class(gridpoints) != c("sf", "data.frame")) || length(gridpoints$geometry) == 0) {
+      stop("Invalid gridpoints: gridpoints must be an sf and data.frame object with at least length 1")
+    }
+    if (length(use_elev) != 1 || !is.logical(use_elev)){
+      stop("Invalid use_elev: use_elev must be TRUE or FALSE")
+    }
+
     #station data should have one column of data, then the station's longitude and latitude
     #Interpolation done via gpgp
     #train the gpgp model
@@ -64,9 +86,11 @@ interpolate_data <-
     X <- cbind(1, coord) #add the intercept column
     grid_matrix <- sf::st_coordinates(gridpoints)
     Xpred <- cbind(1, grid_matrix)
-    if (use_elev){
-      elevations <- elevatr::get_elev_point(data.frame(x = longitudes, y = latitudes), prj = 4326)
-      grid_elevations <- elevatr::get_elev_point(gridpoints, prj = 4326)
+    if (use_elev) {
+      elevations <-
+        elevatr::get_elev_point(data.frame(x = longitudes, y = latitudes), prj = 4326)
+      grid_elevations <-
+        elevatr::get_elev_point(gridpoints, prj = 4326)
       X <- cbind(X, elevations$elevation)
       Xpred <- cbind(Xpred, grid_elevations$elevation)
     }
@@ -105,8 +129,22 @@ interpolate_data <-
 #'                  create_grid(resolution_X = 20,resolution_Y=20))
 #' plot_interpolations(point_map)
 #' @export
-#'
 plot_interpolations <- function(interpolated_data) {
+  if (length(interpolated_data) != 4 || !is.data.frame(interpolated_data) || any(colnames(interpolated_data) != c("interpolations", "longitudes", "latitudes", "inUSA"))){
+    stop("Invalid interpolated_data: interpolated_data must be data frame with columns interpolations, longitudes, latitudes, and inUSA")
+  }
+  if (length(interpolated_data$interpolations) == 0 || !is.numeric(interpolated_data$interpolations)) {
+    stop("Invalid interpolations: interpolations must be numeric of at least length 1")
+  }
+  if (!is.numeric(interpolated_data$longitudes)) {
+    stop("Invalid longitudes: longitudes must be numeric")
+  }
+  if (!is.numeric(interpolated_data$latitudes)) {
+    stop("Invalid latitudes: latitudes must be numeric")
+  }
+  if (!all(interpolated_data$inUSA %in% c(0, 1))) {
+    stop("Invalid inUSA: inUSA must be binary")
+  }
   usamap <-
     sf::st_transform(sf::st_as_sf(maps::map('usa', plot = F)), crs = 4326)
   #make all invalid interpolations NA
@@ -114,15 +152,11 @@ plot_interpolations <- function(interpolated_data) {
     NA
   longitude = unique(interpolated_data$longitudes)
   latitude = unique(interpolated_data$latitudes)
-  fields::imagePlot(
-    longitude,
-    latitude,
-    matrix(interpolated_data$interpolations, nrow = length(unique(
-      interpolated_data$longitudes
-    )))
-  )
-  plot(
-    sf::st_geometry(usamap),
-    add = T,
-  )
+  fields::imagePlot(longitude,
+                    latitude,
+                    matrix(interpolated_data$interpolations, nrow = length(unique(
+                      interpolated_data$longitudes
+                    ))))
+  plot(sf::st_geometry(usamap),
+       add = T,)
 }

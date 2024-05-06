@@ -8,8 +8,8 @@
 #' @param drop_leapdays a logical evaluating to TRUE or FALSE indicating whether leapdays should be dropped or considered, respectively, in the returned dataframe.
 #' @return a data frame with the following columns:
 #' \describe{
-#'   \item {dayofY}{The day of the year (1-365 or 366 if drop_leapdays is TRUE)}
-#'   \item {avgTemp}{The expected average temperature on the day in C)}
+#'   \item {day_of_year}{The day of the year (1-365 or 366 if drop_leapdays is TRUE)}
+#'   \item {avg_temp}{The expected average temperature on the day in C)}
 #' }
 #' @examples
 #' # get yearly cycle for Ithaca, NY
@@ -19,6 +19,17 @@
 #' print(head(ithaca_predictions_Leapyears))
 #' @export
 get_yearly_cycle <- function(station_id, drop_leapdays = T) {
+
+  if (length(station_id) != 1 || !is.numeric(station_id)) {
+    stop("Invalid station ID: station ID must be numeric of length 1")
+  }
+  if (!station_id %in% station_info$WBANNO) {
+    stop("Invalid station ID: station ID provided could not be found in the data")
+  }
+  if (length(drop_leapdays) != 1 || !is.logical(drop_leapdays)){
+    stop("Invalid drop_leapdays: drop_leapdays must be TRUE or FALSE")
+  }
+
   station_weather <- get_station_weather(station_id)
   if(drop_leapdays){
     station_weather$dayofY <- as.numeric(format(station_weather$LST_DATE,"%m%d"))
@@ -39,7 +50,7 @@ get_yearly_cycle <- function(station_id, drop_leapdays = T) {
                     data=station_weather)
   daysofYear <- data.frame(dayofY = seq_len(yearlength))
   predictions <- station_lm |> predict(daysofYear)
-  return (data.frame(avgTemp = predictions,dayofY = as.numeric(names(predictions))))
+  return (data.frame(day_of_year = as.numeric(names(predictions)), avg_temp = predictions))
 }
 
 #' Estimate the trend over time for annual temperatures.
@@ -54,6 +65,14 @@ get_yearly_cycle <- function(station_id, drop_leapdays = T) {
 #' print(ithaca_model)
 #' @export
 temperature_trend <- function(station_id) {
+
+  if (length(station_id) != 1 || !is.numeric(station_id)) {
+    stop("Invalid station ID: station ID must be numeric of length 1")
+  }
+  if (!station_id %in% station_info$WBANNO) {
+    stop("Invalid station ID: station ID provided could not be found in the data")
+  }
+
   station_weather <- get_station_weather(station_id)
   station_weather$years_elapsed <- as.numeric(station_weather$LST_DATE-as.Date("2000-01-01"))/365.25
   station_weather <- station_weather[,c("T_DAILY_AVG","years_elapsed")]
