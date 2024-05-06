@@ -16,7 +16,6 @@ create_grid <- function(resolution_X = 50,
       'usa', regions = 'main', plot = F
     )), crs = 4326)
   boundaries <- sf::st_bbox(usamap)
-  usacoords <- data.frame(sf::st_coordinates(usamap))
   longitudes <-
     seq(boundaries$xmin, boundaries$xmax, length.out = resolution_X)
   latitudes <-
@@ -41,6 +40,7 @@ create_grid <- function(resolution_X = 50,
 #' @param longitudes a numeric of the longitudes associated with the points to interpolate.
 #' @param latitudes a numeric of the latitudes associated with the points to interpolate.
 #' @param gridpoints a series of sf points associated to the grid points to be interpolated with.
+#' @param use_elev a logical of whether or not to calculate and use elevation for interpolations
 #' @return a dataframe containing interpolated data, their longitudes, and their latitudes.
 #' @examples
 #' Interpolates a plot to the daily average temperature across the US
@@ -54,12 +54,21 @@ interpolate_data <-
   function(datapoints,
            longitudes,
            latitudes,
+           use_elev = F,
            gridpoints) {
     #station data should have one column of data, then the station's longitude and latitude
     #Interpolation done via gpgp
     #train the gpgp model
     coord <- cbind(longitudes, latitudes)
     X <- cbind(1, coord) #add the intercept column
+    grid_matrix <- sf::st_coordinates(gridpoints)
+    Xpred <- cbind(1, grid_matrix)
+    if (use_elev){
+      elevations <- elevatr::get_elev_point(data.frame(x = longitudes, y = latitudes), prj = 4326)
+      grid_elevations <- elevatr::get_elev_point(gridpoints, prj = 4326)
+      X <- cbind(X, elevations$elevation)
+      Xpred <- cbind(Xpred, grid_elevations$elevation)
+    }
     gp_model <- GpGp::fit_model(
       y = datapoints,
       locs = coord,
@@ -67,8 +76,6 @@ interpolate_data <-
       covfun_name = "exponential_sphere",
       silent = T
     )
-    grid_matrix <- sf::st_coordinates(gridpoints)
-    Xpred <- cbind(1, grid_matrix)
     interpolations <-
       GpGp::predictions(fit = gp_model,
                         locs_pred = grid_matrix,
@@ -104,15 +111,17 @@ plot_interpolations <- function(interpolated_data) {
   #make all invalid interpolations NA
   interpolated_data[interpolated_data$inUSA == 0, "interpolations"] <-
     NA
+  longitude = unique(interpolated_data$longitudes)
+  latitude = unique(interpolated_data$latitudes)
   fields::imagePlot(
-    unique(interpolated_data$longitudes),
-    unique(interpolated_data$latitudes),
+    longitude,
+    latitude,
     matrix(interpolated_data$interpolations, nrow = length(unique(
       interpolated_data$longitudes
     )))
   )
   plot(
     sf::st_geometry(usamap),
-    add = T
+    add = T,
   )
 }

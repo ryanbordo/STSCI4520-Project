@@ -12,5 +12,11 @@ LazyData: true
 Suggests: 
     knitr,
     rmarkdown,
-    dplyr
+    dplyr,
+    maps,
+    GpGp,
+    sf,
+    sp,
+    elevatr,
+    progress
 VignetteBuilder: knitr

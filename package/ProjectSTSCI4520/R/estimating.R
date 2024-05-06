@@ -63,5 +63,5 @@ temperature_trend <- function(station_id) {
                    years_elapsed,
                  data=station_weather)
   #get the t value and coefficient estimate for our model
-  return(summary(cycle_lm)$coefficients["years_elapsed",c("Estimate", "t value")])
+  return(summary(cycle_lm))
 }
