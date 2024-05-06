@@ -96,8 +96,8 @@ interpolate_data <-
 #'   \item {longitudes}{A numeric of the longitudes to plot}
 #'   \item {latitudes}{A numeric of the latitudes to plot}
 #'   \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+#'   }
 #' @param latitudes a numeric of the latitudes associated with the points to interpolate
-#' }
 #' @return A plot with points overlaid.
 #' @examples
 #' # get a plot of the USA with interpolated temperatures
