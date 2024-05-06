@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
+```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -23,9 +23,9 @@ library(ProjectSTSCI4520)
 ```{r}
 # map of the average temperature of stations in March 2024 vs the interpolated data map
 non_contig <- c("AK", "HI", "NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "YT", "NT", "NU")
-contig_stations <- station_info[!station_info$state %in% non_USA, ]
+contig_stations <- station_info[!station_info$state %in% non_contig, ]
 
-march_2024_data <- daily_weather |> dplyr:::filter(LST_DATE >= "2024-03-01", LST_DATE < "2024-04-01", !state %in% non_USA) |> dplyr:::group_by(`station name`, LONGITUDE, LATITUDE) |> dplyr:::summarise(avg_temp = mean(T_DAILY_AVG))
+march_2024_data <- daily_weather |> dplyr:::filter(LST_DATE >= "2024-03-01", LST_DATE < "2024-04-01", !state %in% non_contig) |> dplyr:::group_by(`station name`, LONGITUDE, LATITUDE) |> dplyr:::summarise(avg_temp = mean(T_DAILY_AVG))
 
 colmap <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
@@ -35,7 +35,7 @@ legend(x = -72, y = 40, title="Temperature",legend= levels(cut(march_2024_data$a
 title("Average Temperature (°C) in March 2024")
 
 grid <- create_grid(resolution_X = 100, resolution_Y=100)
-interp_data = int_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, gridpoints = grid, use_elev = F)
+interp_data = interpolate_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, gridpoints = grid, use_elev = F)
 plot_interpolations(interp_data)
 title("Average Interpolated Temperature (°C) in March 2024")
 ```
@@ -130,19 +130,47 @@ plot_interpolations(trend_interp_data)
 title("Interpolated Temperature Trends in °C per Year")
 ```
 
-Weather stations experiencing statistically significant changes in temperature per year are indicated with a triangle, as opposed to a circle, on the map. The method to determine statistical significance was a t-test. For each weather station in the contiguous US, this test was conducted with the null hypothesis being that there is no yearly temperature trend and the alternative hypothesis being that there is a yearly temperature trend. Each weather station then had a T statistic computed, this statistic is defined as x_bar / (s/sqrt(n)), where x_bar is the station's average temperature trend per year, s is the station's sample standard deviation temperature trend per year, and n is the number of years of data minus 1 in the data. This T statistic is proven to be t distributed with n - 1 degrees of freedom under the null hypothesis. If this test statistic is beyond the middle (1 - alpha)% of this t distribution, we reject the null hypothesis and conclude that the temperature trend is significant over time since the null hypothesis is very unlikely to see given the data. In this case, we use a 95% confidence level and see that most of the station have a statistically significant weather trend over time.
+Weather stations experiencing statistically significant changes in temperature per year are indicated with a triangle, as opposed to a circle, on the map. The method to determine statistical significance was a t-test. For each weather station in the contiguous US, this test was conducted with the null hypothesis being that there is no yearly temperature trend and the alternative hypothesis being that there is a yearly temperature trend. Each weather station then had a T statistic computed, this statistic is defined as b_years_elapsed / standard_error(b_years_elapsed), where b_years_elapsed is the station's average temperature trend per year coefficient in the linear model, standard_error(b_years_elapsed) is the standard error of the coefficient. This T statistic is proven to be t distributed with (sample_size - na_samples - parameters) in the model degrees of freedom under the null hypothesis. If this test statistic is beyond the middle (1 - alpha)% of this t distribution, we reject the null hypothesis and conclude that the temperature trend is significant over time since the null hypothesis is very unlikely to see given the data. In this case, we use a 95% confidence level and see that most of the station have a statistically significant weather trend over time.
 
 ```{r}
 # according to https://www.weather.gov/media/slc/ClimateBook/Annual%20Average%20Temperature%20By%20Year.pdf
 # the National Weather Service
 years = 2004:2023
-last_20_avg_F <- c(52.1, 53.4, 53.8, 53.8, 51.9, 52.1, 52.7, 51.8, 56.6, 53.3, 55.6, 56.3, 56.2, 56.1, 56.2, 53.6, 55.7, 56.3, 55.9, 55.6)
+last_20_avg_F <-
+  c(
+    52.1,
+    53.4,
+    53.8,
+    53.8,
+    51.9,
+    52.1,
+    52.7,
+    51.8,
+    56.6,
+    53.3,
+    55.6,
+    56.3,
+    56.2,
+    56.1,
+    56.2,
+    53.6,
+    55.7,
+    56.3,
+    55.9,
+    55.6
+  )
 last_20_avg_C <- (last_20_avg_F - 32) / 1.8
 diffs = last_20_avg_C[-1] - last_20_avg_C[-20]
-gov_avg_change = mean(diffs)
+cycle_lm <- lm(last_20_avg_C ~
+                 I(sin(2 * pi * years))
+               + I(cos(2 * pi * years)) +
+                 I(sin(4 * pi * years)) + I(cos(4 * pi * years)) +
+                 years)
 data_avg_change = mean(trend_coefs)
+gov_avg_change = summary(cycle_lm)$coefficients["years", "Estimate"]
+
 ```
-According to the National Weather Service data for the average US temperature over the last 20 years, the average change in temperature has been `r gov_avg_change` degrees Celsius per year. Our data collection and analysis shows that the average change in temperature has been `r data_avg_change` degrees Celsius per year. The two estimates are close and may differ due to different locations for the collection of data. However, they both show a positive trend in the temperature in recent years, potentially due to human global warming,
+According to the National Weather Service data for the average US temperature over the last 20 years, the average change in temperature has been `r gov_avg_change` degrees Celsius per year. Our data collection and analysis shows that the average change in temperature has been `r data_avg_change` degrees Celsius per year. The two estimates are very close and may differ due to different locations for the collection of data. However, they both show a positive trend in the temperature in recent years, potentially due to human global warming,
 
 
 

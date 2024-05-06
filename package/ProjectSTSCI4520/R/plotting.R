@@ -16,6 +16,7 @@ create_grid <- function(resolution_X = 50,
       'usa', regions = 'main', plot = F
     )), crs = 4326)
   boundaries <- sf::st_bbox(usamap)
+  usacoords <- data.frame(sf::st_coordinates(usamap))
   longitudes <-
     seq(boundaries$xmin, boundaries$xmax, length.out = resolution_X)
   latitudes <-

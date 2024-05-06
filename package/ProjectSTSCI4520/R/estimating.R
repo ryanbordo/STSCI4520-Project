@@ -62,6 +62,6 @@ temperature_trend <- function(station_id) {
                    I(sin(4*pi*years_elapsed))+I(cos(4*pi*years_elapsed))+
                    years_elapsed,
                  data=station_weather)
-  #get the t value and coefficient estimate for our model
+  #get the summary for our model
   return(summary(cycle_lm))
 }
