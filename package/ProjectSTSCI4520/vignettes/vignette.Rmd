@@ -35,7 +35,7 @@ legend(x = -72, y = 40, title="Temperature", legend = levels(cut(march_2024_data
 title("Average Temperature (°C) in March 2024")
 
 grid <- create_grid(resolution_X = 100, resolution_Y=100)
-interp_data = interpolate_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, gridpoints = grid, use_elev = F)
+interp_data = interpolate_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, gridpoints = grid, use_elev = T)
 plot_interpolations(interp_data)
 title("Average Interpolated Temperature (°C) in March 2024")
 ```
@@ -50,10 +50,10 @@ stations_low_day <- rep(NA, times = num_stations)
 i <- 1
 for (station_id in contig_stations$WBANNO){
   yearly_estimates = get_yearly_cycle(station_id)
-  min_row <- which.min(yearly_estimates$avgTemp)
-  max_row <- which.max(yearly_estimates$avgTemp)
-  stations_high_day[i] <- yearly_estimates[max_row, "day_o"]
-  stations_low_day[i] <- yearly_estimates[min_row, "dayofY"]
+  min_row <- which.min(yearly_estimates$avg_temp)
+  max_row <- which.max(yearly_estimates$avg_temp)
+  stations_high_day[i] <- yearly_estimates[max_row, "day_of_year"]
+  stations_low_day[i] <- yearly_estimates[min_row, "day_of_year"]
   i <- i + 1
 }
 
@@ -98,7 +98,7 @@ plot(1, xlab="Day of the Year", ylab="Expected Temperature (°C)", xlim=c(1, 365
 i <- 1
 for (station_id in diverse_stations$WBANNO){
   yearly_cycle <- get_yearly_cycle(station_id)
-  points(x = yearly_cycle$dayofY, y = yearly_cycle$avgTemp, type = "l", col = rainbow(10)[i], lwd = 2, lty = i)
+  points(x = yearly_cycle$day_of_year, y = yearly_cycle$avg_temp, type = "l", col = rainbow(10)[i], lwd = 2, lty = i)
   i = i + 1
 }
 par(cex = 0.8)
@@ -118,17 +118,19 @@ for (station_id in contig_stations$WBANNO){
     i = i + 1
 }
 
+
 maps::map("usa")
 points(contig_stations$LONGITUDE, contig_stations$LATITUDE, pch = 16 + is_sig, col =  colmap(10)[cut(trend_coefs, 10)])
 legend(x = -74, y = 40, title="°C/yr Trend",legend = levels(cut(trend_coefs, 10)), col = colmap(10), pch=20, xpd=TRUE)
 title("Temperature Trends in °C per Year")
 
-low_se_indices = order(standard_errors)[1:as.integer(length(standard_errors) * 0.9)]
+low_se_indices = order(standard_errors)[1:as.integer(length(standard_errors) * 0.75)]
 
 trend_interp_data <- interpolate_data(trend_coefs[low_se_indices], contig_stations$LONGITUDE[low_se_indices], contig_stations$LATITUDE[low_se_indices], gridpoints = grid)
 plot_interpolations(trend_interp_data)
 title("Interpolated Temperature Trends in °C per Year")
 ```
+For each station, a least squares regression was fit on the daily average temperature with the covariate years_elapsed, which represents the years elapsed since the start of 2000. sin(2*pi*dayofY/years_elapsed), cos(2*pi*years_elapsed), sin(4*pi*years_elapsed), and cos(4*pi*dayofY/years_elapsed) were added as well to the model's covariates to ignore influence of cyclic temperature patterns such as seasons. We did this to analyze only the year to year trends in weather as opposed to seasonal trend. Then, we used the coeffecient for the years_elapsed term to estimate the linear temperature trend over the years for each station.
 
 Weather stations experiencing statistically significant changes in temperature per year are indicated with a triangle, as opposed to a circle, on the map. The method to determine statistical significance was a t-test. For each weather station in the contiguous US, this test was conducted with the null hypothesis being that there is no linear yearly temperature trend and the alternative hypothesis being that there is a linear yearly temperature trend. Each weather station then had a T statistic computed, this statistic is defined as b_years_elapsed / standard_error(b_years_elapsed), where b_years_elapsed is the station's average temperature trend per year coefficient in the linear model, standard_error(b_years_elapsed) is the standard error of the coefficient. This T statistic is proven to be t distributed with (sample_size - na_samples - parameters) in the model degrees of freedom under the null hypothesis. If this test statistic is beyond the middle (1 - alpha)% of this t distribution, we reject the null hypothesis and conclude that the temperature trend is significant over time since the null hypothesis is very unlikely to see given the data. In this case, we use a 95% confidence level and see that most of the station have a statistically significant weather trend over time.
 
@@ -160,13 +162,14 @@ last_20_avg_F <-
     55.6
   )
 last_20_avg_C <- (last_20_avg_F - 32) / 1.8
-diffs = last_20_avg_C[-1] - last_20_avg_C[-20]
 gov_cycle_lm <- lm(last_20_avg_C ~
                  years)
-data_avg_change = mean(trend_coefs)
-gov_avg_change = summary(gov_cycle_lm)$coefficients["years", "Estimate"]
+data_avg_change <- round(mean(trend_coefs[low_se_indices]), 2)
+gov_avg_change <- round(summary(gov_cycle_lm)$coefficients["years", "Estimate"], 2)
+print(paste("Weather data avg trend:", data_avg_change))
+print(paste("Government data avg trend:", gov_avg_change))
 ```
-According to the National Weather Service data for the average US temperature over the last 20 years, the average change in temperature has been `r gov_avg_change` degrees Celsius per year. Our data collection and analysis shows that the average change in temperature has been `r data_avg_change` degrees Celsius per year. The two estimates are very close and may differ due to different locations for the collection of data. However, they both show a positive trend in the temperature in recent years, potentially due to human global warming,
+According to the National Weather Service data for the average US temperature over the last 20 years, the average change in temperature has been `r gov_avg_change` degrees Celsius per year. Our data collection and analysis shows that the average change in temperature has been `r data_avg_change` degrees Celsius per year. The two estimates are close and may differ due to different locations for the collection of data. However, they both show a positive trend in the temperature in recent years, potentially due to human global warming,
 
 
 

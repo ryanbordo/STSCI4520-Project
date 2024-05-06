@@ -2,8 +2,8 @@ test_that( "yearly cycle data looks ok", {
 
   ithaca_cycle_no_leap <- get_yearly_cycle(64758)
   expect_equal(
-    names(ithaca_cycle_no_leap),
-    c("day_of_year", "avg_temp")
+    all(colnames(ithaca_cycle_no_leap)) == c("day_of_year", "avg_temp"),
+    TRUE
   )
   expect_equal(
     nrow(ithaca_cycle_no_leap),
@@ -16,8 +16,8 @@ test_that( "yearly cycle data looks ok", {
 
   ithaca_cycle_leap <- get_yearly_cycle(64758, drop_leapdays = F)
   expect_equal(
-    names(ithaca_cycle_leap),
-    c("day_of_year", "avg_temp")
+    all(colnames(ithaca_cycle_leap)) == c("day_of_year", "avg_temp"),
+    TRUE
   )
   expect_equal(
     nrow(ithaca_cycle_leap),
