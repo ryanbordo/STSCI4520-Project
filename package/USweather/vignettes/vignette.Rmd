@@ -17,10 +17,10 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(USweather)
+library(NCEIweather)
 ```
 
-```{r}
+```{r, out.width = "8.5in"}
 # map of the average temperature of stations in March 2024 vs the interpolated data map
 non_contig <- c("AK", "HI", "NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "YT", "NT", "NU")
 contig_stations <- station_info[!station_info$state %in% non_contig, ]
@@ -42,7 +42,7 @@ title("Average Interpolated Temperature (°C) in March 2024")
 
 
 
-```{r}
+```{r, out.width = "8.5in"}
 num_stations <- nrow(contig_stations)
 stations_high_day <- rep(NA, times = num_stations)
 stations_low_day <- rep(NA, times = num_stations)
@@ -85,7 +85,7 @@ Then, to find the coldest and warmest days of the year for each station, we take
 
 The warmest day of the year is much later in places that tend to be warmer such as CA or FL, while the coldest day of the year is earlier the further you get inland.
 
-```{r}
+```{r, out.width = "8.5in"}
 diverse_stations_ids <- sort(c(63828, 94060, 4994, 64758, 53152, 94092, 53968, 94645, 54808, 4223))
 diverse_stations <- station_info[station_info$WBANNO %in% diverse_stations_ids, ]
 
@@ -103,7 +103,7 @@ par(cex = 0.8)
 legend(x ="right", inset = c(-0.5, 0), title="Station", legend = diverse_stations$`station name`, col = rainbow(10), lty = 1:10, pch=20)
 ```
 
-```{r}
+```{r, out.width = "8.5in"}
 trend_coefs <- rep(NA, length = nrow(contig_stations))
 standard_errors <- rep(NA, length = nrow(contig_stations))
 is_sig <- rep(F, length = nrow(contig_stations))
@@ -133,7 +133,7 @@ For each station, a least squares regression was fit on the daily average temper
 
 Weather stations experiencing statistically significant changes in temperature per year are indicated with a triangle, as opposed to a circle, on the map. The method to determine statistical significance was a t-test. For each weather station in the contiguous US, this test was conducted with the null hypothesis being that there is no linear yearly temperature trend and the alternative hypothesis being that there is a linear yearly temperature trend. Each weather station then had a T statistic computed, this statistic is defined as b_years_elapsed / standard_error(b_years_elapsed), where b_years_elapsed is the station's average temperature trend per year coefficient in the linear model, standard_error(b_years_elapsed) is the standard error of the coefficient. This T statistic is proven to be t distributed with (sample_size - na_samples - parameters) in the model degrees of freedom under the null hypothesis. If this test statistic is beyond the middle (1 - alpha)% of this t distribution, we reject the null hypothesis and conclude that the temperature trend is significant over time since the null hypothesis is very unlikely to see given the data. In this case, we use a 95% confidence level and see that most of the station have a statistically significant weather trend over time.
 
-```{r}
+```{r, out.width = "8.5in"}
 # according to https://www.weather.gov/media/slc/ClimateBook/Annual%20Average%20Temperature%20By%20Year.pdf
 # the National Weather Service
 years = 2004:2023
