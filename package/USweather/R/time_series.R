@@ -3,11 +3,11 @@
 #' Get the National Centers for Environmental Information daily temperature and weather data for a
 #' given weather station by its station ID with optional start and end date filters.
 #'
-#' @param station_id station ID also known as WBANNO
+#' @param station_id numeric station ID also known as WBANNO
 #' @param start_date optional character (YYYY-MM-DD) or date parameter to filter for days beginning with start_date, inclusive
 #' @param end_date optional character (YYYY-MM-DD) or date parameter to filter for days ending before start_date, inclusive
 #' @return a data frame with the following columns:
-#' \itemize{
+#' \describe{
 #'   \item{WBANNO}: {The station WBAN number}
 #'   \item{state}: {the state location of the weather station}
 #'   \item{station_name}: {the name of the station given by the state location vector}
@@ -37,23 +37,28 @@ get_station_weather <-
   function(station_id,
            start_date = "2000-01-01",
            end_date = "3000-01-01") {
+    # check if station_id is a valid length 1 numeric
     if (length(station_id) != 1 || !is.numeric(station_id)) {
       stop("Invalid station ID: station ID must be numeric of length 1")
     }
+    # check if station_id is in the dataset
     if (!station_id %in% station_info$WBANNO) {
       stop("Invalid station ID: station ID provided could not be found in the data")
     }
+    # check if start_date and end_date are valid length 1 arguments
     if (length(start_date) != 1 || length(end_date) != 1) {
       stop(
         "Invalid date formats: optional start_date and end_date must be single character \"YYYY-MM-DD\" or Date format"
       )
     }
+    # check if start_date and end_date are valid classes
     if (!class(start_date) %in% c("character", "Date") ||
         !class(end_date) %in% c("character", "Date")) {
       stop(
         "Invalid date formats: optional start_date and end_date must be character \"YYYY-MM-DD\" or Date format"
       )
     }
+    # check if start_date is a valid character
     if (class(start_date) == "character") {
       tryCatch(
         expr = as.Date(start_date, tryFormats = c("%Y-%m-%d")),
@@ -64,6 +69,7 @@ get_station_weather <-
         }
       )
     }
+    # check if end_date is a valid character
     if (class(end_date) == "character") {
       tryCatch(
         expr = as.Date(end_date, tryFormats = c("%Y-%m-%d")),
@@ -75,6 +81,7 @@ get_station_weather <-
       )
     }
 
+    # filter data by station_id, start_date, and end_date
     cond <-
       (daily_weather$WBANNO == station_id) &
       (daily_weather$LST_DATE <= end_date) &

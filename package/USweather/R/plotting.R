@@ -11,29 +11,37 @@
 #' @export
 create_grid <- function(resolution_X = 50,
                         resolution_Y = 50) {
+  # make sure resolution_X is a valid length 1 integer
   if (length(resolution_X) != 1 ||
       !is.numeric(resolution_X) || resolution_X %% 1 != 0) {
     stop("Invalid resolution_X: resolution_X must be integer of length 1")
   }
+  # make sure resolution_Y is a valid length 1 integer
   if (length(resolution_Y) != 1 ||
       !is.numeric(resolution_Y) || resolution_Y %% 1 != 0) {
     stop("Invalid resolution_Y: resolution_Y must be integer of length 1")
   }
+  # get map of contiguous US
   usamap <-
     sf::st_transform(sf::st_as_sf(maps::map(
       'usa', regions = 'main', plot = F
     )), crs = 4326)
+  # find boundaries of contiguous US
   boundaries <- sf::st_bbox(usamap)
+  # find the coords of the contiguous US
   usacoords <- data.frame(sf::st_coordinates(usamap))
+  # find the longitudes and latitudes of the US coordinates
   longitudes <-
     seq(boundaries$xmin, boundaries$xmax, length.out = resolution_X)
   latitudes <-
     seq(boundaries$ymin, boundaries$ymax, length.out = resolution_Y)
+  # expand these to a grid
   usa.grid <- expand.grid(longitudes, latitudes)
   colnames(usa.grid) <- c("longitude", "latitude")
   grid_sf <- sf::st_as_sf(usa.grid,
                           coords = c("longitude", "latitude"),
                           crs = 4326)
+  # create a column for whether the point is in the contiguous US
   grid_sf$inUSA <-
     sp::point.in.polygon(usa.grid$longitude,
                          usa.grid$latitude,
@@ -51,7 +59,7 @@ create_grid <- function(resolution_X = 50,
 #' @param gridpoints a series of sf points associated to the grid points to be interpolated with.
 #' @param use_elev a logical of whether or not to calculate and use elevation for interpolations
 #' @return a dataframe containing the following columns:
-#' \itemize{
+#' \describe{
 #'   \item {interpolations}: {The numeric interpolated data points to plotted}
 #'   \item {longitudes}: {A numeric of the longitudes to plot}
 #'   \item {latitudes}: {A numeric of the latitudes to plot}
@@ -71,17 +79,21 @@ interpolate_data <-
            latitudes,
            gridpoints,
            use_elev = F) {
+    # check if station_id is a valid length 1 numeric
     if (length(datapoints) == 0 || !is.numeric(datapoints)) {
       stop("Invalid datapoints: datapoints must be numeric of at least length 1")
     }
+    # check if longitudes are valid numerics with same length as datapoints
     if (length(longitudes) != length(datapoints) ||
         !is.numeric(longitudes)) {
       stop("Invalid longitudes: longitudes must be numeric with the same length as datapoints")
     }
+    # check if latitudes are valid numerics with same length as datapoints
     if (length(latitudes) != length(datapoints) ||
         !is.numeric(latitudes)) {
       stop("Invalid latitudes: latitudes must be numeric with the same length as datapoints")
     }
+    # check if gridpoints are a valid sf object
     if (length(gridpoints) != 2 ||
         any(class(gridpoints) != c("sf", "data.frame")) ||
         length(gridpoints$geometry) == 0) {
@@ -89,6 +101,7 @@ interpolate_data <-
         "Invalid gridpoints: gridpoints must be an sf and data.frame object with at least length 1"
       )
     }
+    # check if use_elev is a valid length 1 logical
     if (length(use_elev) != 1 || !is.logical(use_elev)) {
       stop("Invalid use_elev: use_elev must be TRUE or FALSE")
     }
@@ -100,6 +113,7 @@ interpolate_data <-
     X <- cbind(1, coord) #add the intercept column
     grid_matrix <- sf::st_coordinates(gridpoints)
     Xpred <- cbind(1, grid_matrix)
+    # use elevatr for elevation finding and append to data if use_elev
     if (use_elev) {
       elevations <-
         elevatr::get_elev_point(data.frame(x = longitudes, y = latitudes), prj = 4326)
@@ -108,6 +122,7 @@ interpolate_data <-
       X <- cbind(X, elevations$elevation)
       Xpred <- cbind(Xpred, grid_elevations$elevation)
     }
+    # fit gaussian process model
     gp_model <- GpGp::fit_model(
       y = datapoints,
       locs = coord,
@@ -115,6 +130,7 @@ interpolate_data <-
       covfun_name = "exponential_sphere",
       silent = T
     )
+    # find interpolations by using grid predictions
     interpolations <-
       GpGp::predictions(fit = gp_model,
                         locs_pred = grid_matrix,
@@ -129,7 +145,7 @@ interpolate_data <-
 #' Plot points generated over a map of the contiguous US.
 #'
 #' @param interpolated_data the datapoints that are to be plotted with the following columns
-#' \itemize{
+#' \describe{
 #'   \item {interpolations}: {The interpolated data points to plotted}
 #'   \item {longitudes}: {A numeric of the longitudes to plot}
 #'   \item {latitudes}: {A numeric of the latitudes to plot}
@@ -138,12 +154,14 @@ interpolate_data <-
 #' @param latitudes a numeric of the latitudes associated with the points to interpolate
 #' @return A plot with points overlaid.
 #' @examples
-#' # get a plot of the USA with interpolated temperatures
+#' # get a plot of the USA with interpolated temperatures from January 1st 2020
+#' toInterpolate = daily_weather[daily_weather$LST_DATE == "2020-01-01", ]
 #' point_map <- interpolate_data(toInterpolate$T_DAILY_AVG,toInterpolate$LONGITUDE,toInterpolate$LATITUDE,
 #'                  create_grid(resolution_X = 20,resolution_Y=20))
 #' plot_interpolations(point_map)
 #' @export
 plot_interpolations <- function(interpolated_data) {
+  # check if interpolated data is valid data frame with correct columns
   if (length(interpolated_data) != 4 ||
       !is.data.frame(interpolated_data) ||
       any(
@@ -152,20 +170,25 @@ plot_interpolations <- function(interpolated_data) {
     stop(
       "Invalid interpolated_data: interpolated_data must be data frame with columns interpolations, longitudes, latitudes, and inUSA"
     )
+  # check if interpolations are valid numerics
   }
   if (length(interpolated_data$interpolations) == 0 ||
       !is.numeric(interpolated_data$interpolations)) {
     stop("Invalid interpolations: interpolations must be numeric of at least length 1")
+  # check if longitudes are valid numerics
   }
   if (!is.numeric(interpolated_data$longitudes)) {
     stop("Invalid longitudes: longitudes must be numeric")
   }
+  # check if latitudes are valid numerics
   if (!is.numeric(interpolated_data$latitudes)) {
     stop("Invalid latitudes: latitudes must be numeric")
   }
+  # check if inUSA is valid binary
   if (!all(interpolated_data$inUSA %in% c(0, 1))) {
     stop("Invalid inUSA: inUSA must be binary")
   }
+  # get map of USA
   usamap <-
     sf::st_transform(sf::st_as_sf(maps::map('usa', plot = F)), crs = 4326)
   #make all invalid interpolations NA
@@ -173,10 +196,12 @@ plot_interpolations <- function(interpolated_data) {
     NA
   longitude = unique(interpolated_data$longitudes)
   latitude = unique(interpolated_data$latitudes)
+  # plot interpolations on map
   fields::imagePlot(longitude,
                     latitude,
                     matrix(interpolated_data$interpolations, nrow = length(unique(
                       interpolated_data$longitudes
                     ))))
+  # add US map to plot
   plot(sf::st_geometry(usamap), add = T, )
 }
