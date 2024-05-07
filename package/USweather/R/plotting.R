@@ -80,11 +80,11 @@ interpolate_data <-
       gridcoords <- sf::st_coordinates(gridpoints)
     }
     if(is.null(coordinates)){
-      coordinates <- cbind(data$LONGITUDE,data$LATITUDE)
+      coordinates <- cbind(LONGITUDE = data$LONGITUDE,LATITUDE = data$LATITUDE)
     }
     formula <- as.formula(formula)
-    gridpoints$LONGITUDES <- gridcoords[,1]
-    gridpoints$LATITUDES <- gridcoords[,2]
+    gridpoints$LONGITUDE <- gridcoords[,1]
+    gridpoints$LATITUDE <- gridcoords[,2]
     fitting_data <- model.matrix(formula,data=data)
     gridpoint_entries <- model.matrix(update(terms(formula,data=data),NULL~.),gridpoints)
     gp_model <- GpGp::fit_model(y=model.extract(model.frame(formula,data=data),"response"),
