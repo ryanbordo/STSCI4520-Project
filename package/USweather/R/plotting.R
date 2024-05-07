@@ -76,6 +76,7 @@ interpolate_data <-
   function(formula, data, #formula and model.matrix
            gridpoints,coordinates=NULL,
            gridcoords=NULL) {
+    data <- na.omit(data)
     if(is.null(gridcoords)){ #support for sf points
       gridcoords <- sf::st_coordinates(gridpoints)
     }
@@ -92,11 +93,13 @@ interpolate_data <-
                                 X=fitting_data,
                                 covfun_name="exponential_sphere",
                                 silent=T)
+    print(gridpoint_entries)
+    print(fitting_data)
     # find interpolations by using grid predictions
     interpolations <-
       GpGp::predictions(fit = gp_model,
                         locs_pred = gridcoords,
-                        X_pred = Xpred)
+                        X_pred = gridpoint_entries)
     returned <- cbind(interpolations, gridcoords, gridpoints$inUSA)
     colnames(returned) <-
       c("interpolations", "longitudes", 'latitudes', 'inUSA')
