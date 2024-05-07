@@ -58,7 +58,7 @@ create_grid <- function(resolution_X = 50,
 #'   \item {inUSA}: {A binary variable whether or not to plot (within contiguous USA)}
 #'   }
 #' @examples
-#' Interpolates a plot to the daily average temperature across the US
+#' # Interpolates a plot to the daily average temperature across the US
 #' toInterpolate <- na.omit(daily_weather)
 #' toInterpolate <- toInterpolate[!duplicated(toInterpolate$WBANNO),
 #'                                c("LONGITUDE","LATITUDE","T_DAILY_AVG")]
