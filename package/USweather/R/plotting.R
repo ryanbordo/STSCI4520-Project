@@ -86,7 +86,7 @@ interpolate_data <-
     gridpoints$LONGITUDES <- gridcoords[,1]
     gridpoints$LATITUDES <- gridcoords[,2]
     fitting_data <- model.matrix(formula,data=data)
-    gridpoint_entries <- model.matrix(update(terms(t,data=data),NULL~.),gridpoints)
+    gridpoint_entries <- model.matrix(update(terms(formula,data=data),NULL~.),gridpoints)
     gp_model <- GpGp::fit_model(y=model.extract(model.frame(formula,data=data),"response"),
                                 locs=coordinates,
                                 X=fitting_data,
