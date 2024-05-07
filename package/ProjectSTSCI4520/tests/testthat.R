@@ -1,4 +1,4 @@
 library(testthat)
-library(ProjectSTSCI4520)
+library(NCEIweather)
 
-test_check("ProjectSTSCI4520")
+test_check("NCEIweather")

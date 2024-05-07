@@ -6,11 +6,11 @@ test_that( "temperature trend data looks ok", {
     2
   )
   expect_equal(
-    all(class(gridpoints) == c("sf", "data.frame")),
+    all(class(grid) == c("sf", "data.frame")),
     TRUE
   )
   expect_equal(
-    length(gridpoints$geometry),
+    length(grid$geometry),
     2500
   )
 })

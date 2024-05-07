@@ -7,7 +7,7 @@
 #' @param start_date optional character (YYYY-MM-DD) or date parameter to filter for days beginning with start_date, inclusive
 #' @param end_date optional character (YYYY-MM-DD) or date parameter to filter for days ending before start_date, inclusive
 #' @return a data frame with the following columns:
-#' \describe{
+#' \itemize{
 #'   \item {WBANNO}{The station WBAN number}
 #'   \item {state}{the state location of the weather station}
 #'   \item {station_name} {the name of the station given by the state location vector}

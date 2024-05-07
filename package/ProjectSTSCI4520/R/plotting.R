@@ -11,10 +11,12 @@
 #' @export
 create_grid <- function(resolution_X = 50,
                         resolution_Y = 50) {
-  if (length(resolution_X) != 1 || !is.numeric(resolution_X) || resolution_X %% 1 != 0) {
+  if (length(resolution_X) != 1 ||
+      !is.numeric(resolution_X) || resolution_X %% 1 != 0) {
     stop("Invalid resolution_X: resolution_X must be integer of length 1")
   }
-  if (length(resolution_Y) != 1 || !is.numeric(resolution_Y) || resolution_Y %% 1 != 0) {
+  if (length(resolution_Y) != 1 ||
+      !is.numeric(resolution_Y) || resolution_Y %% 1 != 0) {
     stop("Invalid resolution_Y: resolution_Y must be integer of length 1")
   }
   usamap <-
@@ -50,10 +52,17 @@ create_grid <- function(resolution_X = 50,
 #' @param use_elev a logical of whether or not to calculate and use elevation for interpolations
 #' @return a dataframe containing the following columns:
 #' \itemize{
+<<<<<<< Updated upstream
 #'   \item \code{interpolations}:   {The numeric interpolated data points to plotted}
 #'   \item \code{longitudes}:  {A numeric of the longitudes to plot}
 #'   \item \code{latitudes}:  {A numeric of the latitudes to plot}
 #'   \item \code{inUSA}:   {A binary variable whether or not to plot (within contiguous USA)}
+=======
+#'   \item {interpolations}{The numeric interpolated data points to plotted}
+#'   \item {longitudes}{A numeric of the longitudes to plot}
+#'   \item {latitudes}{A numeric of the latitudes to plot}
+#'   \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+>>>>>>> Stashed changes
 #'   }
 #' @examples
 #' Interpolates a plot to the daily average temperature across the US
@@ -67,21 +76,27 @@ interpolate_data <-
   function(datapoints,
            longitudes,
            latitudes,
-           use_elev = F,
-           gridpoints) {
+           gridpoints,
+           use_elev = F) {
     if (length(datapoints) == 0 || !is.numeric(datapoints)) {
       stop("Invalid datapoints: datapoints must be numeric of at least length 1")
     }
-    if (length(longitudes) != length(datapoints) || !is.numeric(longitudes)) {
+    if (length(longitudes) != length(datapoints) ||
+        !is.numeric(longitudes)) {
       stop("Invalid longitudes: longitudes must be numeric with the same length as datapoints")
     }
-    if (length(latitudes) != length(datapoints) || !is.numeric(latitudes)) {
+    if (length(latitudes) != length(datapoints) ||
+        !is.numeric(latitudes)) {
       stop("Invalid latitudes: latitudes must be numeric with the same length as datapoints")
     }
-    if (length(gridpoints) != 2 || any(class(gridpoints) != c("sf", "data.frame")) || length(gridpoints$geometry) == 0) {
-      stop("Invalid gridpoints: gridpoints must be an sf and data.frame object with at least length 1")
+    if (length(gridpoints) != 2 ||
+        any(class(gridpoints) != c("sf", "data.frame")) ||
+        length(gridpoints$geometry) == 0) {
+      stop(
+        "Invalid gridpoints: gridpoints must be an sf and data.frame object with at least length 1"
+      )
     }
-    if (length(use_elev) != 1 || !is.logical(use_elev)){
+    if (length(use_elev) != 1 || !is.logical(use_elev)) {
       stop("Invalid use_elev: use_elev must be TRUE or FALSE")
     }
 
@@ -121,7 +136,7 @@ interpolate_data <-
 #' Plot points generated over a map of the contiguous US.
 #'
 #' @param interpolated_data the datapoints that are to be plotted with the following columns
-#' \describe{
+#' \itemize{
 #'   \item {interpolations}{The interpolated data points to plotted}
 #'   \item {longitudes}{A numeric of the longitudes to plot}
 #'   \item {latitudes}{A numeric of the latitudes to plot}
@@ -136,10 +151,17 @@ interpolate_data <-
 #' plot_interpolations(point_map)
 #' @export
 plot_interpolations <- function(interpolated_data) {
-  if (length(interpolated_data) != 4 || !is.data.frame(interpolated_data) || any(colnames(interpolated_data) != c("interpolations", "longitudes", "latitudes", "inUSA"))){
-    stop("Invalid interpolated_data: interpolated_data must be data frame with columns interpolations, longitudes, latitudes, and inUSA")
+  if (length(interpolated_data) != 4 ||
+      !is.data.frame(interpolated_data) ||
+      any(
+        colnames(interpolated_data) != c("interpolations", "longitudes", "latitudes", "inUSA")
+      )) {
+    stop(
+      "Invalid interpolated_data: interpolated_data must be data frame with columns interpolations, longitudes, latitudes, and inUSA"
+    )
   }
-  if (length(interpolated_data$interpolations) == 0 || !is.numeric(interpolated_data$interpolations)) {
+  if (length(interpolated_data$interpolations) == 0 ||
+      !is.numeric(interpolated_data$interpolations)) {
     stop("Invalid interpolations: interpolations must be numeric of at least length 1")
   }
   if (!is.numeric(interpolated_data$longitudes)) {
@@ -163,6 +185,5 @@ plot_interpolations <- function(interpolated_data) {
                     matrix(interpolated_data$interpolations, nrow = length(unique(
                       interpolated_data$longitudes
                     ))))
-  plot(sf::st_geometry(usamap),
-       add = T,)
+  plot(sf::st_geometry(usamap), add = T, )
 }

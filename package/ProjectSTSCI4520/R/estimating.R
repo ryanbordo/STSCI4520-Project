@@ -7,7 +7,7 @@
 #' @param station_id station ID also known as WBANNO
 #' @param drop_leapdays a logical evaluating to TRUE or FALSE indicating whether leapdays should be dropped or considered, respectively, in the returned dataframe.
 #' @return a data frame with the following columns:
-#' \describe{
+#' \itemize{
 #'   \item {day_of_year}{The day of the year (1-365 or 366 if drop_leapdays is TRUE)}
 #'   \item {avg_temp}{The expected average temperature on the day in C)}
 #' }
@@ -58,7 +58,7 @@ get_yearly_cycle <- function(station_id, drop_leapdays = T) {
 #'
 #'
 #' @param station_id station ID also known as WBANNO
-#' @return numeric with Estimated temperature change in degrees Celsius per year(Estimate) and t-value of the estimate.
+#' @return numeric with estimated temperature change in degrees Celsius per year(Estimate) and t-value of the estimate.
 #' @examples
 #' # get yearly trend for Ithaca, NY
 #' ithaca_model <- temperature_trend(64758)

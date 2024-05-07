@@ -1,24 +1,26 @@
-Package: ProjectSTSCI4520
+Package: NCEIweather
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Allows for easy analysis and plotting of NCEI's US weather data
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Ryan Bordo, Cameron Xu
+Maintainer: Ryan Bordo <reb376@cornell.edu>, Cameron Xu <cx83@cornell.edu>
+Description: Using the National Centers for Environmental Information data for weather at US stations, this package contains cleaned and transformed data from the NCEI US weather dataset, functions to conduct analysis, and a plotting tool.
+License: GPL-2
 Encoding: UTF-8
 LazyData: true
-Suggests: 
+Imports: 
     knitr,
-    rmarkdown,
     dplyr,
     maps,
     GpGp,
     sf,
     sp,
     elevatr,
-    progress,
+    progress
+Suggests: 
+    rmarkdown,
+    knitr,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 RoxygenNote: 7.3.1
+Config/testthat/edition: 3

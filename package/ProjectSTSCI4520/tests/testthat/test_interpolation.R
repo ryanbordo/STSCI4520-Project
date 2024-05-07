@@ -1,17 +1,11 @@
 test_that("temperature trend data looks ok", {
-  ithaca_weather <- get_station_weather(64758)
   grid <- create_grid()
-  ithaca_interp <-
-    interpolate_data(
-      datapoints = ithaca_weather$T_DAILY_AVG,
-      latitudes = ithaca_weather$LATITUDE,
-      longitudes = ithaca_weather$LONGITUDE,
-      gridpoints =  grid
-    )
-  expect_equal(all.colnames(ithaca_interp) == c("interpolations", "longitudes", "latitudes", "inUSA"),
-               TRUE)
-  expect_equal(all(class(ithaca_interp$interpolations) == "numeric"),
-               TRUE)
-  expect_equal(nrow(ithaca_interp),
-               2500)
+  march_2024_data <- daily_weather |> dplyr:::filter(LST_DATE >= "2024-03-01",
+                                                     LST_DATE < "2024-04-01",
+                                                     !state %in% non_contig) |> dplyr:::group_by(`station name`, LONGITUDE, LATITUDE) |> dplyr:::summarise(avg_temp = mean(T_DAILY_AVG))
+  interp = interpolate_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, use_elev = F, grid)
+  expect_equal(colnames(interp),
+               c("interpolations", "longitudes", "latitudes", "inUSA"))
+  expect_equal(class(interp$interpolations), "numeric")
+  expect_equal(nrow(interp), 2500)
 })
