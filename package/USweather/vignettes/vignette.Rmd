@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(NCEIweather)
+library(USweather)
 ```
 
 ```{r, out.width = "8.5in"}
