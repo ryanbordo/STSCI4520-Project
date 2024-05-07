@@ -53,11 +53,11 @@ create_grid <- function(resolution_X = 50,
 
 #' Interpolate values of X and Y via a gaussian processes model given a grid to interpolate to.
 #'
-#' @param toInterpolate a numeric of the datapoints which are to be interpolated.
-#' @param longitudes a numeric of the longitudes associated with the points to interpolate.
-#' @param latitudes a numeric of the latitudes associated with the points to interpolate.
-#' @param gridpoints a series of sf points associated to the grid points to be interpolated with.
-#' @param use_elev a logical of whether or not to calculate and use elevation for interpolations
+#' @param formula a object of class "formula" or one that can be coerced to that class, making a description of the datapoints for interpolation.
+#' @param data a dataframe containing the points to be used for interpolation
+#' @param gridpoints a dataframe containing the locations and the independent variables for interpolation associated to the grid points to be interpolated with.
+#' @param coordinates an optional vector containing two columns: the first a numeric of longitudes and the second a numeric of latitudes for the datapoints for interpolation. If not given, the columns for longitude and latitude are assumed to be titled LONGITUDE and LATITUDE.
+#' @param gridcoords an optional vector containing two columns: the first a numeric of longitudes and the second a numeric of latitudes for the points to interpolate. If not given, the input format of gridpoints is assumed to be sf points.
 #' @return a dataframe containing the following columns:
 #' \describe{
 #'   \item {interpolations}: {The numeric interpolated data points to plotted}
@@ -68,19 +68,21 @@ create_grid <- function(resolution_X = 50,
 #' @examples
 #' # Interpolates a plot to the daily average temperature across the US
 #' toInterpolate <- na.omit(daily_weather)
-#' toInterpolate <- toInterpolate[!duplicated(toInterpolate$WBANNO),
-#'                                c("LONGITUDE","LATITUDE","T_DAILY_AVG")]
-#' interpolate_data(toInterpolate$T_DAILY_AVG,toInterpolate$LONGITUDE,toInterpolate$LATITUDE,
-#'                  create_grid(resolution_X = 20,resolution_Y=20))
+#' toInterpolate <- toInterpolate[!duplicated(toInterpolate$WBANNO),c("LONGITUDE","LATITUDE","T_DAILY_AVG")]
+#' interpolate_data(T_DAILY_AVG~LONGITUDE+LATITUDE,data=toInterpolate, create_grid(resolution_X=10,resolution_Y=10))
 #' @export
 
 interpolate_data <-
   function(formula, data, #formula and model.matrix
-           coordinates,
-           gridpoints,gridcoords=NULL) {
+           gridpoints,coordinates=NULL,
+           gridcoords=NULL) {
     if(is.null(gridcoords)){ #support for sf points
       gridcoords <- sf::st_coordinates(gridpoints)
     }
+    if(is.null(coordinates)){
+      coordinates <- cbind(data$LONGITUDE,data$LATITUDE)
+    }
+    formula <- as.formula(formula)
     gridpoints$LONGITUDES <- gridcoords[,1]
     gridpoints$LATITUDES <- gridcoords[,2]
     fitting_data <- model.matrix(formula,data=data)
