@@ -22,6 +22,8 @@ library(USweather)
 
 ```{r,fig.width=8}
 # map of the average temperature of stations in March 2024 vs the interpolated data map
+
+# create list of all possible non contiguous US states/provinces
 non_contig <- c("AK",
                 "HI",
                 "NL",
@@ -37,14 +39,18 @@ non_contig <- c("AK",
                 "YT",
                 "NT",
                 "NU")
+
+# station info filtered to only contiguous US stations
 contig_stations <- station_info[!station_info$state %in% non_contig, ]
 
+# get march 2024 average temperatures for contiguous stations
 march_2024_data <- daily_weather |> dplyr:::filter(LST_DATE >= "2024-03-01",
                                                    LST_DATE < "2024-04-01",
                                                    !state %in% non_contig) |> 
   dplyr:::group_by(`station name`, LONGITUDE, LATITUDE) |> 
   dplyr:::summarise(avg_temp = mean(T_DAILY_AVG))
 
+# define color map to match the interpolated graph
 colmap <- colorRampPalette(
   c(
     "#00007F",
@@ -59,6 +65,7 @@ colmap <- colorRampPalette(
   )
 )
 
+# plot map of contiguous US with station March 2024 averages
 maps::map("usa")
 points(
   march_2024_data$LONGITUDE,
@@ -77,6 +84,7 @@ legend(
 )
 title("Average Temperature (°C) in March 2024")
 
+# create and plot interpolated March 2024 average temperatures
 grid <- create_grid(resolution_X = 100, resolution_Y = 100)
 interp_data = interpolate_data(
   march_2024_data$avg_temp,
@@ -91,10 +99,14 @@ mtext("Temperature", side = 4, line = 3)
 ```
 
 ```{r, fig.width=8}
+# estimating the warmest and coldest days of the year
+
+# create empty vectors for low and high days
 num_stations <- nrow(contig_stations)
 stations_high_day <- rep(NA, times = num_stations)
 stations_low_day <- rep(NA, times = num_stations)
 
+# iterate through the contiguous stations and find and assign low and highs days
 i <- 1
 for (station_id in contig_stations$WBANNO) {
   yearly_estimates = get_yearly_cycle(station_id)
@@ -105,21 +117,10 @@ for (station_id in contig_stations$WBANNO) {
   i <- i + 1
 }
 
-colmap <- colorRampPalette(
-  c(
-    "#00007F",
-    "blue",
-    "#007FFF",
-    "cyan",
-    "#7FFF7F",
-    "yellow",
-    "#FF7F00",
-    "red",
-    "#7F0000"
-  )
-)
+# calculate days from Jan 1 to prevent coldest days in December from being large
 days_from_jan1 <- ifelse(stations_low_day > 100, stations_low_day - 365, stations_low_day)
 
+# plot station warmest day of the year
 maps::map("usa")
 points(
   contig_stations$LONGITUDE,
@@ -138,6 +139,7 @@ legend(
 )
 title("Warmest Day of the Year")
 
+# plot station coldest day of the year (from Jan 1)
 maps::map("usa")
 points(
   contig_stations$LONGITUDE,
@@ -156,6 +158,7 @@ legend(
 )
 title("Coldest Day of the Year")
 
+# interpolate and plot warmest day of the year
 high_day_interp_data <- interpolate_data(
   stations_high_day,
   contig_stations$LONGITUDE,
@@ -166,6 +169,8 @@ high_day_interp_data <- interpolate_data(
 plot_interpolations(high_day_interp_data)
 title("Interpolated Warmest Day of the Year")
 mtext("Day of the year", side = 4, line = 3.8)
+
+# interpolate and plot coldest day of the year
 low_day_interp_data <- interpolate_data(days_from_jan1,
                                         contig_stations$LONGITUDE,
                                         contig_stations$LATITUDE,
@@ -183,14 +188,16 @@ Then, to find the coldest and warmest days of the year for each station, we take
 The warmest day of the year is much later in places that tend to be warmer such as CA or FL, while the coldest day of the year is earlier the further you get inland.
 
 ```{r,fig.width=11}
+# yearly weather cycles for 10 diverse US stations
+
+# pick station ID's, done by inspection of the data set
 diverse_stations_ids <- sort(c(63828, 94060, 4994, 64758, 
                                53152, 94092, 53968, 94645, 
                                54808, 4223))
 diverse_stations <- station_info[station_info$WBANNO %in% diverse_stations_ids, ]
 
-yearly_cycles <- rep(NA, times = 10)
+# initialize plot for the cycles
 par(mar = c(4, 5, 3, 20), xpd = TRUE)
-
 plot(
   1,
   xlab = "Day of the Year",
@@ -199,6 +206,8 @@ plot(
   ylim = c(-20, 30),
   type = 'n'
 )
+
+# iterate through the diverse station IDs to estimate and plot cycles
 i <- 1
 for (station_id in diverse_stations$WBANNO) {
   yearly_cycle <- get_yearly_cycle(station_id)
@@ -225,9 +234,14 @@ legend(
 ```
 
 ```{r,fig.width=8}
+# estimating the yearly trend of US weather
+
+# initialize empty vectors for coefficients, SEs, and significance
 trend_coefs <- rep(NA, length = nrow(contig_stations))
 standard_errors <- rep(NA, length = nrow(contig_stations))
 is_sig <- rep(F, length = nrow(contig_stations))
+
+# iterate through all contiguous US stations
 i <- 1
 for (station_id in contig_stations$WBANNO) {
   station_trend = temperature_trend(station_id)
@@ -237,6 +251,7 @@ for (station_id in contig_stations$WBANNO) {
   i = i + 1
 }
 
+# plot the stations with their trend coefficient and significance
 maps::map("usa")
 points(
   contig_stations$LONGITUDE,
@@ -264,9 +279,11 @@ legend(
 )
 title("Temperature Trends in °C per Year")
 
+# determine the indices in the bottom 2/3 of standard errors
 low_se_indices = order(standard_errors)[1:as.integer(length(standard_errors) * 2 /
                                                        3)]
 
+# interpolate and plot the bottom 2/3 of standard errors of trend coefs
 trend_interp_data <- interpolate_data(trend_coefs[low_se_indices],
                                       contig_stations$LONGITUDE[low_se_indices],
                                       contig_stations$LATITUDE[low_se_indices],
@@ -282,9 +299,15 @@ For each station, a least squares regression was fit on the daily average temper
 Weather stations experiencing statistically significant changes in temperature per year are indicated with a triangle, as opposed to a circle, on the map. The method to determine statistical significance was a t-test. For each weather station in the contiguous US, this test was conducted with the null hypothesis being that there is no linear yearly temperature trend and the alternative hypothesis being that there is a linear yearly temperature trend. Each weather station then had a T statistic computed, this statistic is defined as $\frac{b_{years\_elapsed}}{SE_{b_{years\_elapsed}}}$, where $b_{years\_elapsed}$ is the station's average temperature trend per year coefficient in the linear model, $SE_{b_{years\_elapsed}}$) is the standard error of the coefficient. This T statistic is proven to be t distributed with (sample_size - na_samples - parameters) degrees of freedom under the null hypothesis. If this test statistic is beyond the middle $(1 - \alpha)\%$ of this t distribution, we reject the null hypothesis and conclude that the temperature trend is significant over time since the null hypothesis is very unlikely to see given the data. In this case, we use a $95\%$ confidence level and see that most of the station have a statistically significant weather trend over time.
 
 ```{r, fig.width=8}
+# compare our calculated weather trends to those from an reputable source
+
 # according to https://www.weather.gov/media/slc/
 # ClimateBook/Annual%20Average%20Temperature%20By%20Year.pdf
 # the National Weather Service
+
+# could not find a good source that had already estimated yearly trend in C
+
+# manual input
 years = 2004:2023
 last_20_avg_F <-
   c(
@@ -309,11 +332,20 @@ last_20_avg_F <-
     55.9,
     55.6
   )
+
+# convert from F to C to match our data
 last_20_avg_C <- (last_20_avg_F - 32) / 1.8
+
+# estimating the 20 year temperature trend
 gov_cycle_lm <- lm(last_20_avg_C ~
                  years)
+
+# the average temperature trend per year from our low SE data
 data_avg_change <- round(mean(trend_coefs[low_se_indices]), 2)
+
+# the predicted temperature trend per year from the government data
 gov_avg_change <- round(summary(gov_cycle_lm)$coefficients["years", "Estimate"], 2)
+
 print(paste("Weather data average trend:", data_avg_change))
 print(paste("Government data average trend:", gov_avg_change))
 ```
