@@ -1,0 +1,26 @@
+Package: NCEIweather
+Type: Package
+Title: Allows for easy analysis and plotting of NCEI's US weather data
+Version: 0.1.0
+Author: Ryan Bordo, Cameron Xu
+Maintainer: Ryan Bordo <reb376@cornell.edu>, Cameron Xu <cx83@cornell.edu>
+Description: Using the National Centers for Environmental Information data for weather at US stations, this package contains cleaned and transformed data from the NCEI US weather dataset, functions to conduct analysis, and a plotting tool.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    knitr,
+    dplyr,
+    maps,
+    GpGp,
+    sf,
+    sp,
+    elevatr,
+    progress
+Suggests: 
+    rmarkdown,
+    knitr,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+RoxygenNote: 7.3.1
+Config/testthat/edition: 3
