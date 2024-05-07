@@ -85,7 +85,7 @@ To estimate the warmest and coldest day of the year for each station, we first e
 
 Then, to find the coldest and warmest days of the year for each station, we take the days with the minimum and maximum temperature respectively. However, to plot the coldest day of the year, we find the days from January 1st to ensure that days near the end and start of the year are probably encoded as similar dates due to the cyclic nature of the year.
 
-The interpolations for the coldest day of the year comes with some problems that should be notes. Since some locations are predicted to have a December coldest day and others are predicted to have a January coldest day, the locations in between them are often predicted to have a coldest day in the summer. This occurs because of incorrect assumptions in our model for creating interpolations. The model is created to have smooth and linear predictions due to the assumtions of the linear model. However, it does not understand that the prediction for day of the year is rather a cyclic.
+The interpolations for the coldest day of the year comes with some problems that should be notes. Since some locations are predicted to have a December coldest day and others are predicted to have a January coldest day, the locations in between them are often predicted to have a coldest day in the summer. This occurs because of incorrect assumptions in our model for creating interpolations. The model is created to have smooth and linear predictions due to the assumptions of the linear model. However, it does not understand that the prediction for day of the year is rather a cyclic.
 
 ```{r}
 diverse_stations_ids <- sort(c(63828, 94060, 4994, 64758, 53152, 94092, 53968, 94645, 54808, 4223))
