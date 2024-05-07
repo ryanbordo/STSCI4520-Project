@@ -1,4 +1,4 @@
-Package: NCEIweather
+Package: USweather
 Type: Package
 Title: Allows for easy analysis and plotting of NCEI's US weather data
 Version: 0.1.0

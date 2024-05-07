@@ -1,6 +1,6 @@
 ---
 title: "vignette"
-output: pdf_file
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{vignette}
   %\VignetteEngine{knitr::rmarkdown}
@@ -22,6 +22,7 @@ library(USweather)
 
 ```{r}
 # map of the average temperature of stations in March 2024 vs the interpolated data map
+graphics.off()
 non_contig <- c("AK", "HI", "NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "YT", "NT", "NU")
 contig_stations <- station_info[!station_info$state %in% non_contig, ]
 
@@ -35,7 +36,7 @@ legend(x = -72, y = 40, title="Temperature", legend = levels(cut(march_2024_data
 title("Average Temperature (°C) in March 2024")
 
 grid <- create_grid(resolution_X = 100, resolution_Y=100)
-interp_data = interpolate_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, gridpoints = grid, use_elev = T)
+interp_data = interpolate_data(march_2024_data$avg_temp, march_2024_data$LONGITUDE, march_2024_data$LATITUDE, gridpoints = grid, use_elev = F)
 plot_interpolations(interp_data)
 title("Average Interpolated Temperature (°C) in March 2024")
 ```
@@ -43,6 +44,7 @@ title("Average Interpolated Temperature (°C) in March 2024")
 
 
 ```{r}
+graphics.off()
 num_stations <- nrow(contig_stations)
 stations_high_day <- rep(NA, times = num_stations)
 stations_low_day <- rep(NA, times = num_stations)
@@ -86,6 +88,7 @@ Then, to find the coldest and warmest days of the year for each station, we take
 The warmest day of the year is much later in places that tend to be warmer such as CA or FL, while the coldest day of the year is earlier the further you get inland.
 
 ```{r}
+graphics.off()
 diverse_stations_ids <- sort(c(63828, 94060, 4994, 64758, 53152, 94092, 53968, 94645, 54808, 4223))
 diverse_stations <- station_info[station_info$WBANNO %in% diverse_stations_ids, ]
 
@@ -104,6 +107,7 @@ legend(x ="right", inset = c(-0.5, 0), title="Station", legend = diverse_station
 ```
 
 ```{r}
+graphics.off()
 trend_coefs <- rep(NA, length = nrow(contig_stations))
 standard_errors <- rep(NA, length = nrow(contig_stations))
 is_sig <- rep(F, length = nrow(contig_stations))
@@ -115,7 +119,6 @@ for (station_id in contig_stations$WBANNO){
     is_sig[i] = station_trend$coefficients["years_elapsed", "Pr(>|t|)"] <= 0.05
     i = i + 1
 }
-
 
 maps::map("usa")
 points(contig_stations$LONGITUDE, contig_stations$LATITUDE, pch = 16 + is_sig, col =  colmap(10)[cut(trend_coefs, 10)])
