@@ -11,7 +11,7 @@ temperature_trend(station_id)
 \item{station_id}{station ID also known as WBANNO}
 }
 \value{
-numeric with estimated temperature change in degrees Celsius per year(Estimate) and t-value of the estimate.
+A list of summary statistics for the fitted model.
 }
 \description{
 Estimate the trend over time for annual temperatures.

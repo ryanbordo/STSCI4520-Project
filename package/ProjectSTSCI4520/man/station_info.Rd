@@ -7,7 +7,7 @@
 \format{
 a dataframe with 273 rows and 5 columns
 \describe{
-  \item{WBANNO}{"The station WBAN number"}
+  \item{WBANNO}{The station WBAN number}
   \item{state}{the state location of the weather station}
   \item{station_name}{the name of the station given by the state location vector}
   \item{LST_DATE}{the local standard time date of the weather entry}

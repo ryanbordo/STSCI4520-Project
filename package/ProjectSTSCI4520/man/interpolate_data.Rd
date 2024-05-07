@@ -20,10 +20,10 @@ interpolate_data(datapoints, longitudes, latitudes, gridpoints, use_elev = F)
 \value{
 a dataframe containing the following columns:
 \itemize{
-  \item {interpolations}{The numeric interpolated data points to plotted}
-  \item {longitudes}{A numeric of the longitudes to plot}
-  \item {latitudes}{A numeric of the latitudes to plot}
-  \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+  \item {interpolations}: {The numeric interpolated data points to plotted}
+  \item {longitudes}: {A numeric of the longitudes to plot}
+  \item {latitudes}: {A numeric of the latitudes to plot}
+  \item {inUSA}: {A binary variable whether or not to plot (within contiguous USA)}
   }
 }
 \description{

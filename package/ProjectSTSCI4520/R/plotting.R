@@ -52,10 +52,10 @@ create_grid <- function(resolution_X = 50,
 #' @param use_elev a logical of whether or not to calculate and use elevation for interpolations
 #' @return a dataframe containing the following columns:
 #' \itemize{
-#'   \item {interpolations}{The numeric interpolated data points to plotted}
-#'   \item {longitudes}{A numeric of the longitudes to plot}
-#'   \item {latitudes}{A numeric of the latitudes to plot}
-#'   \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+#'   \item {interpolations}: {The numeric interpolated data points to plotted}
+#'   \item {longitudes}: {A numeric of the longitudes to plot}
+#'   \item {latitudes}: {A numeric of the latitudes to plot}
+#'   \item {inUSA}: {A binary variable whether or not to plot (within contiguous USA)}
 #'   }
 #' @examples
 #' Interpolates a plot to the daily average temperature across the US
@@ -130,10 +130,10 @@ interpolate_data <-
 #'
 #' @param interpolated_data the datapoints that are to be plotted with the following columns
 #' \itemize{
-#'   \item {interpolations}{The interpolated data points to plotted}
-#'   \item {longitudes}{A numeric of the longitudes to plot}
-#'   \item {latitudes}{A numeric of the latitudes to plot}
-#'   \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+#'   \item {interpolations}: {The interpolated data points to plotted}
+#'   \item {longitudes}: {A numeric of the longitudes to plot}
+#'   \item {latitudes}: {A numeric of the latitudes to plot}
+#'   \item {inUSA}: {A binary variable whether or not to plot (within contiguous USA)}
 #'   }
 #' @param latitudes a numeric of the latitudes associated with the points to interpolate
 #' @return A plot with points overlaid.

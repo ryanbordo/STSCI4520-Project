@@ -9,10 +9,10 @@ plot_interpolations(interpolated_data)
 \arguments{
 \item{interpolated_data}{the datapoints that are to be plotted with the following columns
 \itemize{
-  \item {interpolations}{The interpolated data points to plotted}
-  \item {longitudes}{A numeric of the longitudes to plot}
-  \item {latitudes}{A numeric of the latitudes to plot}
-  \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
+  \item {interpolations}: {The interpolated data points to plotted}
+  \item {longitudes}: {A numeric of the longitudes to plot}
+  \item {latitudes}: {A numeric of the latitudes to plot}
+  \item {inUSA}: {A binary variable whether or not to plot (within contiguous USA)}
   }}
 
 \item{latitudes}{a numeric of the latitudes associated with the points to interpolate}
