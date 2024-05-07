@@ -87,14 +87,16 @@ interpolate_data <-
     gridpoints$LONGITUDE <- gridcoords[,1]
     gridpoints$LATITUDE <- gridcoords[,2]
     fitting_data <- model.matrix(formula,data=data)
-    gridpoint_entries <- model.matrix(update(terms(formula,data=data),NULL~.),gridpoints)
+    gridpoint_entries <- model.matrix(update(terms(formula,data=data),NULL~.),gridpoints,na.action=na.pass)
     gp_model <- GpGp::fit_model(y=model.extract(model.frame(formula,data=data),"response"),
                                 locs=coordinates,
                                 X=fitting_data,
                                 covfun_name="exponential_sphere",
                                 silent=T)
     print(gridpoint_entries)
-    print(fitting_data)
+
+    print(gridpoints)
+    print(gridcoords)
     # find interpolations by using grid predictions
     interpolations <-
       GpGp::predictions(fit = gp_model,
