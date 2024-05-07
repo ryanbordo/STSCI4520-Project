@@ -52,17 +52,10 @@ create_grid <- function(resolution_X = 50,
 #' @param use_elev a logical of whether or not to calculate and use elevation for interpolations
 #' @return a dataframe containing the following columns:
 #' \itemize{
-<<<<<<< Updated upstream
-#'   \item \code{interpolations}:   {The numeric interpolated data points to plotted}
-#'   \item \code{longitudes}:  {A numeric of the longitudes to plot}
-#'   \item \code{latitudes}:  {A numeric of the latitudes to plot}
-#'   \item \code{inUSA}:   {A binary variable whether or not to plot (within contiguous USA)}
-=======
 #'   \item {interpolations}{The numeric interpolated data points to plotted}
 #'   \item {longitudes}{A numeric of the longitudes to plot}
 #'   \item {latitudes}{A numeric of the latitudes to plot}
 #'   \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
->>>>>>> Stashed changes
 #'   }
 #' @examples
 #' Interpolates a plot to the daily average temperature across the US
