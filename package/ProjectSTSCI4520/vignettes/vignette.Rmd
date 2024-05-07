@@ -1,6 +1,6 @@
 ---
 title: "vignette"
-output: pdf_file
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{vignette}
   %\VignetteEngine{knitr::rmarkdown}
