@@ -18,7 +18,13 @@ interpolate_data(datapoints, longitudes, latitudes, use_elev = F, gridpoints)
 \item{toInterpolate}{a numeric of the datapoints which are to be interpolated.}
 }
 \value{
-a dataframe containing interpolated data, their longitudes, and their latitudes.
+a dataframe containing the following columns:
+\itemize{
+  \item \code{interpolations}:   {The numeric interpolated data points to plotted}
+  \item \code{longitudes}:  {A numeric of the longitudes to plot}
+  \item \code{latitudes}:  {A numeric of the latitudes to plot}
+  \item \code{inUSA}:   {A binary variable whether or not to plot (within contiguous USA)}
+  }
 }
 \description{
 Interpolate values of X and Y via a gaussian processes model given a grid to interpolate to.
