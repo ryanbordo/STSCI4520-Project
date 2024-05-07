@@ -22,7 +22,6 @@ library(NCEIweather)
 
 ```{r, out.width = "8.5in"}
 # map of the average temperature of stations in March 2024 vs the interpolated data map
-graphics.off()
 non_contig <- c("AK", "HI", "NL", "PE", "NS", "NB", "QC", "ON", "MB", "SK", "AB", "BC", "YT", "NT", "NU")
 contig_stations <- station_info[!station_info$state %in% non_contig, ]
 
