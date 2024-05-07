@@ -85,14 +85,13 @@ legend(
 title("Average Temperature (°C) in March 2024")
 
 # create and plot interpolated March 2024 average temperatures
-grid <- create_grid(resolution_X = 100, resolution_Y = 100)
-interp_data = interpolate_data(
-  march_2024_data$avg_temp,
-  march_2024_data$LONGITUDE,
-  march_2024_data$LATITUDE,
-  gridpoints = grid,
-  use_elev = T
-)
+grid <- create_grid(resolution_X = 10, resolution_Y = 10)
+
+# add elevation to data and grid
+march_2024_data$elevation = elevatr::get_elev_point(data.frame(x = march_2024_data$LONGITUDE, y = march_2024_data$LATITUDE), prj = 4326)$elevation
+grid$elevation <- elevatr::get_elev_point(grid)$elevation
+
+interp_data = interpolate_data(avg_temp ~ LONGITUDE + LATITUDE + elevation, data = march_2024_data, coordinates = march_2024_data[ , c("LONGITUDE", "LATITUDE")], gridpoints = grid)
 plot_interpolations(interp_data)
 title("Average Interpolated Temperature (°C) in March 2024")
 mtext("Temperature", side = 4, line = 3)
@@ -158,24 +157,20 @@ legend(
 )
 title("Coldest Day of the Year")
 
+# add high and low data columns and elevation column
+contig_stations$stations_high_day = stations_high_day
+contig_stations$days_from_jan_1 = days_from_jan_1
+contig_stations$elevation = elevatr::get_elev_point(data.frame(x = contig_stations$LONGITUDE, y = contig_stations$LATITUDE), prj = 4326)
+
+
 # interpolate and plot warmest day of the year
-high_day_interp_data <- interpolate_data(
-  stations_high_day,
-  contig_stations$LONGITUDE,
-  contig_stations$LATITUDE,
-  gridpoints = grid,
-  use_elev=T
-)
+high_day_interp_data = interpolate_data(stations_high_day ~ LONGITUDE + LATITUDE + elevation, data = contig_stations, gridpoints = grid)
 plot_interpolations(high_day_interp_data)
 title("Interpolated Warmest Day of the Year")
 mtext("Day of the year", side = 4, line = 3.8)
 
 # interpolate and plot coldest day of the year
-low_day_interp_data <- interpolate_data(days_from_jan1,
-                                        contig_stations$LONGITUDE,
-                                        contig_stations$LATITUDE,
-                                        gridpoints = grid,
-                                        use_elev=T)
+low_day_interp_data <- interpolate_data(days_from_jan_1 ~ LONGITUDE + LATITUDE + elevation, data = contig_stations, gridpoints = grid)
 plot_interpolations(low_day_interp_data)
 title("Interpolated Coldest Day of the Year from Jan 1st")
 mtext("Days to January 1st", side = 4, line = 3)
@@ -282,13 +277,10 @@ title("Temperature Trends in °C per Year")
 # determine the indices in the bottom 2/3 of standard errors
 low_se_indices = order(standard_errors)[1:as.integer(length(standard_errors) * 2 /
                                                        3)]
+contig_station$trend_coefs = trend_coefs
 
 # interpolate and plot the bottom 2/3 of standard errors of trend coefs
-trend_interp_data <- interpolate_data(trend_coefs[low_se_indices],
-                                      contig_stations$LONGITUDE[low_se_indices],
-                                      contig_stations$LATITUDE[low_se_indices],
-                                      gridpoints = grid,
-                                      use_elev=T)
+trend_interp_data <- interpolate_data(trend_coefs ~ LONGITUDE + LATITUDE + elevation, data = contig_stations, gridpoints = grid)
 plot_interpolations(trend_interp_data)
 title("Interpolated Temperature Trends in °C per Year")
 mtext("°C per Year", side = 4, line = 3.8)
