@@ -4,26 +4,26 @@
 \alias{interpolate_data}
 \title{Interpolate values of X and Y via a gaussian processes model given a grid to interpolate to.}
 \usage{
-interpolate_data(datapoints, longitudes, latitudes, use_elev = F, gridpoints)
+interpolate_data(datapoints, longitudes, latitudes, gridpoints, use_elev = F)
 }
 \arguments{
 \item{longitudes}{a numeric of the longitudes associated with the points to interpolate.}
 
 \item{latitudes}{a numeric of the latitudes associated with the points to interpolate.}
 
-\item{use_elev}{a logical of whether or not to calculate and use elevation for interpolations}
-
 \item{gridpoints}{a series of sf points associated to the grid points to be interpolated with.}
+
+\item{use_elev}{a logical of whether or not to calculate and use elevation for interpolations}
 
 \item{toInterpolate}{a numeric of the datapoints which are to be interpolated.}
 }
 \value{
 a dataframe containing the following columns:
 \itemize{
-  \item \code{interpolations}:   {The numeric interpolated data points to plotted}
-  \item \code{longitudes}:  {A numeric of the longitudes to plot}
-  \item \code{latitudes}:  {A numeric of the latitudes to plot}
-  \item \code{inUSA}:   {A binary variable whether or not to plot (within contiguous USA)}
+  \item {interpolations}{The numeric interpolated data points to plotted}
+  \item {longitudes}{A numeric of the longitudes to plot}
+  \item {latitudes}{A numeric of the latitudes to plot}
+  \item {inUSA}{A binary variable whether or not to plot (within contiguous USA)}
   }
 }
 \description{

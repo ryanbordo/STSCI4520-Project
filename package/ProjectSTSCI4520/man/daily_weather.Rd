@@ -5,21 +5,21 @@
 \alias{daily_weather}
 \title{Daily weather data for stations in the US}
 \format{
-a dataframe with 1134352 rows and 13 columns
+a dataframe with 1134352 rows and 13 columns:
 \describe{
-  \item {WBANNO}{"The station WBAN number"}
-  \item {state}{the state location of the weather station}
-  \item {station_name} {the name of the station given by the state location vector}
-  \item {LST_DATE} {the local standard time date of the weather entry}
-  \item {CRX_VN} {the version number of the datalogger program at the entry time}
-  \item {LONGITUDE} {the longitude of the station using WGS-84}
-  \item {LATITUDE} {the latitude of the station using WGS-84}
-  \item {T_DAILY_MAX} {the maximum air temperature observed in C}
-  \item {T_DAILY_MIN} {the minimum air temperature observed in C}
-  \item {T_DAILY_MEAN} {the mean air temperature observed in C given by (T_DAILY_MAX + T_DAILY_MIN) / 2}
-  \item {T_DAILY_AVG} {the average air temperature observed in C}
-  \item {P_DAILY_CALC} {the total amount of precipitation in mm}
-  \item {SOLARAD_DAILY} {the total solar energy in MJ/meter^2 given by global radiation rates, conversion, and integration over time}
+  \item{WBANNO}{The station WBAN number}
+  \item{state}{the state location of the weather station}
+  \item{station_name}{the name of the station given by the state location vector}
+  \item{LST_DATE}{the local standard time date of the weather entry}
+  \item{CRX_VN}{the version number of the datalogger program at the entry time}
+  \item{LONGITUDE}{the longitude of the station using WGS-84}
+  \item{LATITUDE}{the latitude of the station using WGS-84}
+  \item{T_DAILY_MAX}{the maximum air temperature observed in C}
+  \item{T_DAILY_MIN}{the minimum air temperature observed in C}
+  \item{T_DAILY_MEAN}{the mean air temperature observed in C given by (T_DAILY_MAX + T_DAILY_MIN) / 2}
+  \item{T_DAILY_AVG}{the average air temperature observed in C}
+  \item{P_DAILY_CALC}{the total amount of precipitation in mm}
+  \item{SOLARAD_DAILY}{the total solar energy in MJ/meter^2 given by global radiation rates, conversion, and integration over time}
 }
 }
 \usage{

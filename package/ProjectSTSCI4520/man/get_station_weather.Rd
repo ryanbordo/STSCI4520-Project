@@ -19,7 +19,7 @@ get_station_weather(
 }
 \value{
 a data frame with the following columns:
-\describe{
+\itemize{
   \item {WBANNO}{The station WBAN number}
   \item {state}{the state location of the weather station}
   \item {station_name} {the name of the station given by the state location vector}

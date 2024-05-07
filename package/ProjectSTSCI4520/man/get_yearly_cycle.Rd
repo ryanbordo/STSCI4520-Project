@@ -14,7 +14,7 @@ get_yearly_cycle(station_id, drop_leapdays = T)
 }
 \value{
 a data frame with the following columns:
-\describe{
+\itemize{
   \item {day_of_year}{The day of the year (1-365 or 366 if drop_leapdays is TRUE)}
   \item {avg_temp}{The expected average temperature on the day in C)}
 }
