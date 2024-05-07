@@ -73,74 +73,33 @@ create_grid <- function(resolution_X = 50,
 #' interpolate_data(toInterpolate$T_DAILY_AVG,toInterpolate$LONGITUDE,toInterpolate$LATITUDE,
 #'                  create_grid(resolution_X = 20,resolution_Y=20))
 #' @export
-interpolate_data <-
-  function(datapoints,
-           longitudes,
-           latitudes,
-           gridpoints,
-           use_elev = F) {
-    # check if station_id is a valid length 1 numeric
-    if (length(datapoints) == 0 || !is.numeric(datapoints)) {
-      stop("Invalid datapoints: datapoints must be numeric of at least length 1")
-    }
-    # check if longitudes are valid numerics with same length as datapoints
-    if (length(longitudes) != length(datapoints) ||
-        !is.numeric(longitudes)) {
-      stop("Invalid longitudes: longitudes must be numeric with the same length as datapoints")
-    }
-    # check if latitudes are valid numerics with same length as datapoints
-    if (length(latitudes) != length(datapoints) ||
-        !is.numeric(latitudes)) {
-      stop("Invalid latitudes: latitudes must be numeric with the same length as datapoints")
-    }
-    # check if gridpoints are a valid sf object
-    if (length(gridpoints) != 2 ||
-        any(class(gridpoints) != c("sf", "data.frame")) ||
-        length(gridpoints$geometry) == 0) {
-      stop(
-        "Invalid gridpoints: gridpoints must be an sf and data.frame object with at least length 1"
-      )
-    }
-    # check if use_elev is a valid length 1 logical
-    if (length(use_elev) != 1 || !is.logical(use_elev)) {
-      stop("Invalid use_elev: use_elev must be TRUE or FALSE")
-    }
 
-    #station data should have one column of data, then the station's longitude and latitude
-    #Interpolation done via gpgp
-    #train the gpgp model
-    coord <- cbind(longitudes, latitudes)
-    X <- cbind(1, coord) #add the intercept column
-    grid_matrix <- sf::st_coordinates(gridpoints)
-    Xpred <- cbind(1, grid_matrix)
-    # use elevatr for elevation finding and append to data if use_elev
-    if (use_elev) {
-      elevations <-
-        elevatr::get_elev_point(data.frame(x = longitudes, y = latitudes), prj = 4326)
-      grid_elevations <-
-        elevatr::get_elev_point(gridpoints, prj = 4326)
-      X <- cbind(X, elevations$elevation)
-      Xpred <- cbind(Xpred, grid_elevations$elevation)
+interpolate_data <-
+  function(formula, data, #formula and model.matrix
+           coordinates,
+           gridpoints,gridcoords=NULL) {
+    if(is.null(gridcoords)){ #support for sf points
+      gridcoords <- sf::st_coordinates(gridpoints)
     }
-    # fit gaussian process model
-    gp_model <- GpGp::fit_model(
-      y = datapoints,
-      locs = coord,
-      X = X,
-      covfun_name = "exponential_sphere",
-      silent = T
-    )
+    gridpoints$LONGITUDES <- gridcoords[,1]
+    gridpoints$LATITUDES <- gridcoords[,2]
+    fitting_data <- model.matrix(formula,data=data)
+    gridpoint_entries <- model.matrix(update(terms(t,data=USArrests),NULL~.),gridpoints)
+    gp_model <- GpGp::fit_model(y=model.extract(model.frame(formula,data=data),"response"),
+                                locs=coordinates,
+                                X=fitting_data,
+                                covfun_name="exponential_sphere",
+                                silent=T)
     # find interpolations by using grid predictions
     interpolations <-
       GpGp::predictions(fit = gp_model,
-                        locs_pred = grid_matrix,
+                        locs_pred = gridcoords,
                         X_pred = Xpred)
-    returned <- cbind(interpolations, grid_matrix, gridpoints$inUSA)
+    returned <- cbind(interpolations, gridcoords, gridpoints$inUSA)
     colnames(returned) <-
       c("interpolations", "longitudes", 'latitudes', 'inUSA')
     return(data.frame(returned))
   }
-
 
 #' Plot points generated over a map of the contiguous US.
 #'
