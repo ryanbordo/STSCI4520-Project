@@ -91,7 +91,7 @@ grid <- create_grid(resolution_X = 100, resolution_Y = 100)
 march_2024_data$elevation = elevatr::get_elev_point(data.frame(x = march_2024_data$LONGITUDE, y = march_2024_data$LATITUDE), prj = 4326)$elevation
 grid$elevation <- elevatr::get_elev_point(grid)$elevation
 
-interp_data <- interpolate_data(avg_temp ~ LONGITUDE + LATITUDE + elevation, data = march_2024_data, gridpoints = grid)
+interp_data <- interpolate_data(avg_temp ~ LONGITUDE + LATITUDE, data = march_2024_data, gridpoints = grid)
 
 plot_interpolations(interp_data)
 title("Average Interpolated Temperature (°C) in March 2024")

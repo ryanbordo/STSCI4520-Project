@@ -107,14 +107,16 @@ interpolate_data <-
                                 silent=T)
     # select covariate columns from gridpoints
     Xpred = cbind(1, gridcoords)
-    tryCatch(
-      expr = {
-        Xpred <- cbind(Xpred, gridpoints[[non_loc_covars]])
-      },
-      error = function(cnd){
-        stop("A covariate specified was not found in gridpoints")
-      }
-    )
+    if (length(non_loc_covars) >= 1){
+      tryCatch(
+        expr = {
+          Xpred <- cbind(Xpred, gridpoints[[non_loc_covars]])
+        },
+        error = function(cnd){
+          stop("A covariate specified was not found in gridpoints")
+        }
+      )
+    }
     # find interpolations by using grid predictions
     interpolations <-
       GpGp::predictions(fit = gp_model,
