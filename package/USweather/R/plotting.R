@@ -55,9 +55,8 @@ create_grid <- function(resolution_X = 50,
 #'
 #' @param formula a object of class "formula" or one that can be coerced to that class, making a description of the datapoints for interpolation.
 #' @param data a dataframe containing the points to be used for interpolation
-#' @param gridpoints a dataframe containing the locations and the independent variables for interpolation associated to the grid points to be interpolated with.
-#' @param coordinates an optional vector containing two columns: the first a numeric of longitudes and the second a numeric of latitudes for the datapoints for interpolation. If not given, the columns for longitude and latitude are assumed to be titled LONGITUDE and LATITUDE.
-#' @param gridcoords an optional vector containing two columns: the first a numeric of longitudes and the second a numeric of latitudes for the points to interpolate. If not given, the input format of gridpoints is assumed to be sf points.
+#' @param long_lat_names an optional (default to c("LONGITUDE","LATITUDE")) character vector specifying the names of the longitude and latitude columns in the data respectively to be used as locations
+#' @param gridpoints a series of sf points associated to the grid points to be interpolated with. Must have matching vectors as non-location covariates.
 #' @return a dataframe containing the following columns:
 #' \describe{
 #'   \item {interpolations}: {The numeric interpolated data points to plotted}
@@ -69,39 +68,58 @@ create_grid <- function(resolution_X = 50,
 #' # Interpolates a plot to the daily average temperature across the US
 #' toInterpolate <- na.omit(daily_weather)
 #' toInterpolate <- toInterpolate[!duplicated(toInterpolate$WBANNO),c("LONGITUDE","LATITUDE","T_DAILY_AVG")]
-#' interpolate_data(T_DAILY_AVG~LONGITUDE+LATITUDE,data=toInterpolate, create_grid(resolution_X=10,resolution_Y=10))
+#' interpolate_data(T_DAILY_AVG~LONGITUDE+LATITUDE,data=toInterpolate, gridpoints = create_grid(resolution_X=10,resolution_Y=10))
 #' @export
 
 interpolate_data <-
   function(formula, data, #formula and model.matrix
-           gridpoints,coordinates=NULL,
-           gridcoords=NULL) {
+           long_lat_names = c("LONGITUDE","LATITUDE"),
+           gridpoints) {
+    # check if long_lat_names is a valid length 2 character vector
+    if (length(long_lat_names) != 2 || !is.character(long_lat_names)) {
+      stop("Invalid long_lat_names: long_lat_names must be character vector of length 2")
+    }
+    # check if gridpoints are a valid sf object
+    if (length(gridpoints) == 0 ||
+        any(class(gridpoints) != c("sf", "data.frame")) ||
+        length(gridpoints$geometry) == 0) {
+      stop(
+        "Invalid gridpoints: gridpoints must be an sf and data.frame object with at least length 1"
+      )
+    }
+    # omit NA data
     data <- na.omit(data)
-    if(is.null(gridcoords)){ #support for sf points
-      gridcoords <- sf::st_coordinates(gridpoints)
-    }
-    if(is.null(coordinates)){
-      coordinates <- cbind(LONGITUDE = data$LONGITUDE,LATITUDE = data$LATITUDE)
-    }
+    # get long, lat from gridpoints
+    gridcoords <- sf::st_coordinates(gridpoints)
+    coordinates <- cbind(LONGITUDE = data$LONGITUDE,LATITUDE = data$LATITUDE)
+
+    # process formula to filter data
     formula <- as.formula(formula)
-    gridpoints$LONGITUDE <- gridcoords[,1]
-    gridpoints$LATITUDE <- gridcoords[,2]
+    covars <- strsplit(as.character(formula)[3], " \\+ ")[[1]]
+    non_loc_covars <- covars[!covars %in% long_lat_names]
     fitting_data <- model.matrix(formula,data=data)
-    gridpoint_entries <- model.matrix(update(terms(formula,data=data),NULL~.),gridpoints,na.action=na.pass)
+
+    # fit model
     gp_model <- GpGp::fit_model(y=model.extract(model.frame(formula,data=data),"response"),
                                 locs=coordinates,
                                 X=fitting_data,
                                 covfun_name="exponential_sphere",
                                 silent=T)
-    print(gridpoint_entries)
-
-    print(gridpoints)
-    print(gridcoords)
+    # select covariate columns from gridpoints
+    Xpred = cbind(1, gridcoords)
+    tryCatch(
+      expr = {
+        Xpred <- cbind(Xpred, gridpoints[[non_loc_covars]])
+      },
+      error = function(cnd){
+        stop("A covariate specified was not found in gridpoints")
+      }
+    )
     # find interpolations by using grid predictions
     interpolations <-
       GpGp::predictions(fit = gp_model,
                         locs_pred = gridcoords,
-                        X_pred = gridpoint_entries)
+                        X_pred = Xpred)
     returned <- cbind(interpolations, gridcoords, gridpoints$inUSA)
     colnames(returned) <-
       c("interpolations", "longitudes", 'latitudes', 'inUSA')
